@@ -648,7 +648,7 @@ function KanbanBoard({ createWorkItemTrigger, onCreateWorkItemHandled }: KanbanB
       {/* Developed by Maggie Tag */}
       <div className="fixed top-4 right-4 z-50">
         <div className="bg-transparent border-2 border-dashed border-lime-500 text-lime-600 text-xs px-3 py-1.5 rounded-full shadow-lg opacity-60 hover:opacity-90 transition-opacity duration-200 backdrop-blur-sm">
-          developed by maggie
+          developed and designed by maggie
         </div>
       </div>
 
