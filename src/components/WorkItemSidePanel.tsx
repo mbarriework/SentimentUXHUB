@@ -79,14 +79,14 @@ export default function WorkItemSidePanel({
 
   return (
     <Sheet open={isOpen} onOpenChange={onClose}>
-      <SheetContent className="w-96 sm:w-96">
-        <SheetHeader>
+      <SheetContent className="w-96 sm:w-96 p-8">
+        <SheetHeader className="mb-8">
           <SheetTitle>
             {editingItem ? "Edit Work Item" : "Create Work Item"}
           </SheetTitle>
         </SheetHeader>
 
-        <form onSubmit={handleSubmit} className="mt-6 space-y-6">
+        <form onSubmit={handleSubmit} className="space-y-6">
           <div className="space-y-2">
             <Label htmlFor="title">Title *</Label>
             <Input
@@ -158,8 +158,11 @@ export default function WorkItemSidePanel({
             </Select>
           </div>
 
-          <div className="flex gap-3 pt-4">
-            <Button type="submit" className="flex-1">
+          <div className="flex gap-3 pt-6">
+            <Button 
+              type="submit" 
+              className="flex-1 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-medium shadow-lg hover:shadow-xl transition-all duration-200"
+            >
               {editingItem ? "Update" : "Create"} Work Item
             </Button>
             <Button type="button" variant="outline" onClick={onClose}>

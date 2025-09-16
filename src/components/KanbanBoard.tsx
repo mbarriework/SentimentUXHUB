@@ -93,6 +93,11 @@ const initialCurrentColumns: Column[] = [
 
 const initialBacklogColumns: Column[] = [
   {
+    id: "newly-created",
+    title: "Newly created",
+    items: []
+  },
+  {
     id: "backlog",
     title: "Backlog",
     items: [
@@ -415,11 +420,17 @@ function KanbanBoard({ createWorkItemTrigger, onCreateWorkItemHandled }: KanbanB
       
       {/* Content based on view mode */}
       {viewMode === "capacity" ? renderCapacityView() : (
-        <div className={`grid gap-6 ${
-          viewMode === "backlog" 
-            ? "grid-cols-1 max-w-2xl mx-auto" 
-            : "grid-cols-1 md:grid-cols-2 lg:grid-cols-3"
-        }`}>
+        <>
+          {viewMode === "backlog" && (
+            <div className="mb-6 text-center">
+              <p className="text-muted-foreground text-sm">Will be sorted by team later</p>
+            </div>
+          )}
+          <div className={`grid gap-6 ${
+            viewMode === "backlog" 
+              ? "grid-cols-1 md:grid-cols-2 max-w-4xl mx-auto" 
+              : "grid-cols-1 md:grid-cols-2 lg:grid-cols-3"
+          }`}>
           {(columns || []).map((column) => (
             <div key={column.id} className="space-y-4">
               {/* Column Header */}
@@ -512,6 +523,7 @@ function KanbanBoard({ createWorkItemTrigger, onCreateWorkItemHandled }: KanbanB
             </div>
           ))}
         </div>
+        </>
       )}
 
       <WorkItemSidePanel
