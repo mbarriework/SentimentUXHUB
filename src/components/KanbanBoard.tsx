@@ -8,6 +8,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { toast } from "sonner"
 import WorkItemSidePanel from "./WorkItemSidePanel"
 
+type ViewMode = "current" | "backlog" | "capacity"
+
 interface WorkItem {
   id: string
   title: string
@@ -23,7 +25,7 @@ interface Column {
   items: WorkItem[]
 }
 
-const initialColumns: Column[] = [
+const initialCurrentColumns: Column[] = [
   {
     id: "concept",
     title: "Concept",
@@ -43,158 +45,134 @@ const initialColumns: Column[] = [
         assignee: "UI Team",
         priority: "medium",
         type: "research"
-      },
+      }
+    ]
+  },
+  {
+    id: "progress",
+    title: "In Progress",
+    items: [
       {
         id: "sample-3",
         title: "Conduct Market Research", 
         description: "Analyze competitors, market trends, and industry standards to inform decisions",
-        assignee: "Research",
+        assignee: "UI Team",
         priority: "medium",
         type: "research"
       }
     ]
   },
   {
-    id: "wireframe",
-    title: "Wireframe", 
+    id: "review",
+    title: "Review",
     items: [
       {
         id: "sample-4",
-        title: "Sketch Initial Wireframes",
-        description: "Create rough sketches of page layouts and user interface elements",
-        assignee: "High",
+        title: "Design System Updates",
+        description: "Update button components and color palette for consistency",
+        assignee: "Design Team",
         priority: "high",
         type: "design"
-      },
+      }
+    ]
+  },
+  {
+    id: "done",
+    title: "Done",
+    items: [
       {
         id: "sample-5",
-        title: "Review Accessibility Guidelines",
-        description: "Ensure wireframes adhere to accessibility standards, such as providing alternative text",
-        assignee: "High",
-        priority: "medium",
-        type: "design"
-      },
-      {
-        id: "sample-6",
-        title: "Gather Feedback",
-        description: "Share wireframes with stakeholders and iterate based on their input",
-        assignee: "Normal",
-        priority: "medium",
-        type: "design"
-      },
-      {
-        id: "sample-7",
-        title: "Create Mobile Versions",
-        description: "Develop wireframes for mobile layouts to ensure responsive design",
-        assignee: "High",
-        priority: "high",
-        type: "design"
-      },
-      {
-        id: "sample-8",
-        title: "Finalize Wireframes",
-        description: "Review and finalize wireframes before moving to the design phase",
-        assignee: "High",
+        title: "Navigation Redesign",
+        description: "Completed mobile navigation improvements",
+        assignee: "UI Team",
         priority: "low",
         type: "design"
-      }
-    ]
-  },
-  {
-    id: "design",
-    title: "Design",
-    items: [
-      {
-        id: "sample-9",
-        title: "Design Style Guide",
-        description: "Develop a comprehensive style guide defining design elements",
-        assignee: "High",
-        priority: "high",
-        type: "design"
-      },
-      {
-        id: "sample-10",
-        title: "Create Mood Board",
-        description: "Gather inspiration from various sources to set the tone for the design",
-        assignee: "High",
-        priority: "medium",
-        type: "design"
-      },
-      {
-        id: "sample-11",
-        title: "Iterative Design Reviews",
-        description: "Conduct regular design reviews with stakeholders to gather feedback",
-        assignee: "High",
-        priority: "medium",
-        type: "design"
-      },
-      {
-        id: "sample-12",
-        title: "Optimize for Accessibility",
-        description: "Ensure the design maintains good accessibility standards and readability",
-        assignee: "High",
-        priority: "medium",
-        type: "design"
-      },
-      {
-        id: "sample-13",
-        title: "Export Design Assets",
-        description: "Export design assets as high-quality images, icons, and other visual elements",
-        assignee: "High",
-        priority: "low",
-        type: "design"
-      }
-    ]
-  },
-  {
-    id: "development",
-    title: "Development",
-    items: [
-      {
-        id: "sample-14",
-        title: "Implement Interactivity",
-        description: "Add interactive elements such as animations, hover effects, and accordions",
-        assignee: "Urgent",
-        priority: "high",
-        type: "prototype"
-      },
-      {
-        id: "sample-15",
-        title: "HTML/CSS Markup",
-        description: "Translate the finalized design mockups into HTML and CSS code, and ensuring",
-        assignee: "High",
-        priority: "medium",
-        type: "prototype"
-      },
-      {
-        id: "sample-16",
-        title: "Implement SEO Best Practices",
-        description: "Implement proper SEO elements such as meta tags, headings, and schema markup",
-        assignee: "High",
-        priority: "medium",
-        type: "testing"
-      },
-      {
-        id: "sample-17",
-        title: "Set Up Development Environment",
-        description: "Configure development tools and environments, including text editors, version",
-        assignee: "Low",
-        priority: "low",
-        type: "prototype"
       }
     ]
   }
 ]
 
-export default function KanbanBoard() {
-  const [columns, setColumns] = useKV<Column[]>("kanban-columns", initialColumns)
+const initialBacklogColumns: Column[] = [
+  {
+    id: "upcoming",
+    title: "Upcoming",
+    items: [
+      {
+        id: "backlog-1",
+        title: "User Testing Session",
+        description: "Plan and conduct user testing for the new dashboard interface",
+        assignee: "Research Team",
+        priority: "high",
+        type: "testing"
+      },
+      {
+        id: "backlog-2",
+        title: "Mobile App Prototype",
+        description: "Create interactive prototype for mobile application",
+        assignee: "Design Team",
+        priority: "medium",
+        type: "prototype"
+      }
+    ]
+  },
+  {
+    id: "ideas",
+    title: "Ideas",
+    items: [
+      {
+        id: "backlog-3",
+        title: "AR Integration Concept",
+        description: "Explore augmented reality features for product visualization",
+        assignee: "Innovation Team",
+        priority: "low",
+        type: "research"
+      }
+    ]
+  },
+  {
+    id: "research",
+    title: "Research",
+    items: [
+      {
+        id: "backlog-4",
+        title: "Accessibility Audit",
+        description: "Comprehensive review of accessibility standards compliance",
+        assignee: "QA Team",
+        priority: "high",
+        type: "testing"
+      }
+    ]
+  },
+  {
+    id: "future",
+    title: "Future",
+    items: [
+      {
+        id: "backlog-5",
+        title: "Voice Interface Design",
+        description: "Design voice commands and responses for hands-free interaction",
+        assignee: "UX Team",
+        priority: "low",
+        type: "design"
+      }
+    ]
+  }
+]
+
+function KanbanBoard() {
+  const [viewMode, setViewMode] = useState<ViewMode>("current")
+  const [currentColumns, setCurrentColumns] = useKV<Column[]>("current-columns", initialCurrentColumns)
+  const [backlogColumns, setBacklogColumns] = useKV<Column[]>("backlog-columns", initialBacklogColumns)
   const [sidePanelOpen, setSidePanelOpen] = useState(false)
   const [editingItem, setEditingItem] = useState<WorkItem | null>(null)
   const [targetColumnId, setTargetColumnId] = useState<string>("")
 
+  const columns = viewMode === "current" ? (currentColumns || []) : (backlogColumns || [])
+  const setColumns = viewMode === "current" ? setCurrentColumns : setBacklogColumns
+
   const handleCreateWorkItem = (columnId?: string) => {
     setEditingItem(null)
-    setTargetColumnId(columnId || "concept")
+    setTargetColumnId(columnId || (columns && columns[0]?.id) || "concept")
     setSidePanelOpen(true)
   }
 
@@ -204,7 +182,7 @@ export default function KanbanBoard() {
   }
 
   const handleDeleteWorkItem = (itemId: string) => {
-    setColumns((prev = []) =>
+    setColumns((prev: Column[] = []) =>
       prev.map((col) => ({
         ...col,
         items: col.items.filter((item) => item.id !== itemId),
@@ -214,7 +192,7 @@ export default function KanbanBoard() {
   }
 
   const handleMoveWorkItem = (itemId: string, newColumnId: string) => {
-    setColumns((prev = []) => {
+    setColumns((prev: Column[] = []) => {
       let itemToMove: WorkItem | null = null
       const updatedColumns = prev.map((col) => {
         const item = col.items.find(item => item.id === itemId)
@@ -242,7 +220,7 @@ export default function KanbanBoard() {
 
   const handleSaveWorkItem = (itemData: Omit<WorkItem, "id"> | WorkItem) => {
     if (editingItem) {
-      setColumns((prev = []) =>
+      setColumns((prev: Column[] = []) =>
         prev.map((col) => ({
           ...col,
           items: col.items.map((item) => 
@@ -256,7 +234,7 @@ export default function KanbanBoard() {
         id: Date.now().toString(),
         ...itemData,
       }
-      setColumns((prev = []) =>
+      setColumns((prev: Column[] = []) =>
         prev.map((col) => 
           col.id === targetColumnId ? { ...col, items: [...col.items, newItem] } : col
         )
@@ -265,143 +243,188 @@ export default function KanbanBoard() {
     }
   }
 
+  const renderCapacityView = () => (
+    <div className="text-center py-12">
+      <h3 className="text-xl font-semibold text-foreground mb-4">Team Capacity</h3>
+      <p className="text-muted-foreground mb-8">Capacity planning and workload management coming soon.</p>
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-4xl mx-auto">
+        <Card className="p-6">
+          <h4 className="font-medium text-lg mb-2">UI Team</h4>
+          <p className="text-2xl font-bold text-accent mb-1">75%</p>
+          <p className="text-sm text-muted-foreground">Current capacity</p>
+        </Card>
+        <Card className="p-6">
+          <h4 className="font-medium text-lg mb-2">Design Team</h4>
+          <p className="text-2xl font-bold text-accent mb-1">60%</p>
+          <p className="text-sm text-muted-foreground">Current capacity</p>
+        </Card>
+        <Card className="p-6">
+          <h4 className="font-medium text-lg mb-2">Research Team</h4>
+          <p className="text-2xl font-bold text-accent mb-1">85%</p>
+          <p className="text-sm text-muted-foreground">Current capacity</p>
+        </Card>
+      </div>
+    </div>
+  )
+
   return (
     <div className="p-6 md:p-8 min-h-screen bg-background">
-      {/* Header with auto-saved indicator */}
+      {/* Header with View Toggle */}
       <div className="mb-8">
-        <div className="flex items-center justify-end mb-6">
+        <div className="flex items-center justify-between mb-6">
+          {/* Minimalistic View Toggle */}
+          <div className="flex items-center bg-muted/50 rounded-lg p-1">
+            <button
+              onClick={() => setViewMode("current")}
+              className={`px-4 py-2 text-sm font-medium rounded-md transition-all ${
+                viewMode === "current"
+                  ? "bg-background text-foreground shadow-sm"
+                  : "text-muted-foreground hover:text-foreground"
+              }`}
+            >
+              Current Work
+            </button>
+            <button
+              onClick={() => setViewMode("backlog")}
+              className={`px-4 py-2 text-sm font-medium rounded-md transition-all ${
+                viewMode === "backlog"
+                  ? "bg-background text-foreground shadow-sm"
+                  : "text-muted-foreground hover:text-foreground"
+              }`}
+            >
+              Backlog
+            </button>
+            <button
+              onClick={() => setViewMode("capacity")}
+              className={`px-4 py-2 text-sm font-medium rounded-md transition-all ${
+                viewMode === "capacity"
+                  ? "bg-background text-foreground shadow-sm"
+                  : "text-muted-foreground hover:text-foreground"
+              }`}
+            >
+              Capacity
+            </button>
+          </div>
+
+          {/* Auto-saved indicator */}
           <div className="flex items-center gap-2 text-sm text-muted-foreground bg-muted/50 rounded-full px-3 py-1.5">
             <Database size={14} />
             <span>Auto-saved</span>
           </div>
         </div>
+
+        {/* Subtitle and Create Button */}
+        <div className="text-center mb-6">
+          <p className="text-muted-foreground mb-4">Welcome to our hub</p>
+          <Button 
+            onClick={() => handleCreateWorkItem()}
+            className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-medium px-6 py-2 rounded-lg shadow-lg hover:shadow-xl transition-all duration-200"
+          >
+            <Plus size={16} className="mr-2" />
+            Create new work item
+          </Button>
+        </div>
       </div>
       
-      {/* Four-column grid layout */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        {(columns || []).map((column) => (
-          <div key={column.id} className="space-y-4">
-            {/* Column Header */}
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <h3 className="font-semibold text-lg text-foreground">{column.title}</h3>
-                <Badge variant="secondary" className="text-xs bg-muted text-muted-foreground">
-                  {column.items.length} tasks, 3 hours
-                </Badge>
+      {/* Content based on view mode */}
+      {viewMode === "capacity" ? renderCapacityView() : (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          {(columns || []).map((column) => (
+            <div key={column.id} className="space-y-4">
+              {/* Column Header */}
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <h3 className="font-semibold text-lg text-foreground">{column.title}</h3>
+                  <Badge variant="secondary" className="text-xs bg-muted text-muted-foreground">
+                    {column.items.length} tasks
+                  </Badge>
+                </div>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => handleCreateWorkItem(column.id)}
+                  className="h-8 w-8 p-0 text-muted-foreground hover:text-foreground"
+                >
+                  <Plus size={16} />
+                </Button>
               </div>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => handleCreateWorkItem(column.id)}
-                className="h-8 w-8 p-0 text-muted-foreground hover:text-foreground"
-              >
-                <Plus size={16} />
-              </Button>
-            </div>
 
-            {/* Cards Container */}
-            <div className="space-y-3 min-h-[400px]">
-              {column.items.map((item) => (
-                <Card key={item.id} className="group hover:shadow-md transition-all duration-200 border border-border/50">
-                  <CardContent className="p-4">
-                    {/* Task Title */}
-                    <div className="flex items-start justify-between mb-2">
-                      <h4 className="font-medium text-sm text-card-foreground leading-tight pr-2">
-                        {item.title}
-                      </h4>
-                      <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity shrink-0">
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => handleEditWorkItem(item)}
-                          className="h-6 w-6 p-0 hover:bg-accent"
-                        >
-                          <PencilSimple size={12} />
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => handleDeleteWorkItem(item.id)}
-                          className="h-6 w-6 p-0 hover:bg-destructive/10 hover:text-destructive"
-                        >
-                          <Trash size={12} />
-                        </Button>
+              {/* Cards Container */}
+              <div className="space-y-3 min-h-[400px]">
+                {column.items.map((item) => (
+                  <Card key={item.id} className="group hover:shadow-md transition-all duration-200 border border-border/50">
+                    <CardContent className="p-4">
+                      {/* Task Title */}
+                      <div className="flex items-start justify-between mb-2">
+                        <h4 className="font-medium text-sm text-card-foreground leading-tight pr-2">
+                          {item.title}
+                        </h4>
+                        <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity shrink-0">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => handleEditWorkItem(item)}
+                            className="h-6 w-6 p-0 hover:bg-accent"
+                          >
+                            <PencilSimple size={12} />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => handleDeleteWorkItem(item.id)}
+                            className="h-6 w-6 p-0 hover:bg-destructive/10 hover:text-destructive"
+                          >
+                            <Trash size={12} />
+                          </Button>
+                        </div>
                       </div>
-                    </div>
 
-                    {/* Task Description */}
-                    <p className="text-xs text-muted-foreground mb-4 line-clamp-2 leading-relaxed">
-                      {item.description}
-                    </p>
+                      {/* Task Description */}
+                      <p className="text-xs text-muted-foreground mb-4 line-clamp-2 leading-relaxed">
+                        {item.description}
+                      </p>
 
-                    {/* Status Badge */}
-                    <div className="flex items-center justify-between">
-                      <Badge 
-                        className={`text-xs px-2 py-1 rounded-md ${
-                          item.priority === 'high' ? 'bg-orange-100 text-orange-800 border-orange-200' :
-                          item.priority === 'medium' ? 'bg-purple-100 text-purple-800 border-purple-200' :
-                          item.priority === 'low' ? 'bg-emerald-100 text-emerald-800 border-emerald-200' :
-                          'bg-blue-100 text-blue-800 border-blue-200'
-                        }`}
-                        variant="outline"
-                      >
-                        {item.priority === 'high' ? 'PROGRESS' :
-                         item.priority === 'medium' ? 'REVIEW' :
-                         item.priority === 'low' ? 'DONE' : 'TODO'}
-                      </Badge>
-                      
-                      {/* Assignee */}
-                      <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                        <User size={12} />
-                        <span>{item.assignee}</span>
-                      </div>
-                    </div>
+                      {/* Bottom Row - Priority Badge and Assignee */}
+                      <div className="flex items-center justify-between">
+                        <Badge 
+                          className={`text-xs px-2 py-1 rounded-md ${
+                            item.priority === 'high' ? 'bg-red-100 text-red-800 border-red-200' :
+                            item.priority === 'medium' ? 'bg-yellow-100 text-yellow-800 border-yellow-200' :
+                            'bg-green-100 text-green-800 border-green-200'
+                          }`}
+                          variant="outline"
+                        >
+                          {item.priority.toUpperCase()}
+                        </Badge>
 
-                    {/* Move to column selector */}
-                    <div className="mt-3 pt-3 border-t border-border/30">
-                      <Select
-                        value=""
-                        onValueChange={(newColumnId) => handleMoveWorkItem(item.id, newColumnId)}
-                      >
-                        <SelectTrigger className="h-7 text-xs w-full">
-                          <div className="flex items-center gap-1">
+                        {/* Move Dropdown */}
+                        <Select onValueChange={(value) => handleMoveWorkItem(item.id, value)}>
+                          <SelectTrigger className="h-6 w-6 p-0 border-none bg-transparent hover:bg-accent">
                             <ArrowRight size={12} />
-                            <SelectValue placeholder="Move to..." />
-                          </div>
-                        </SelectTrigger>
-                        <SelectContent>
-                          {(columns || [])
-                            .filter((col) => col.id !== column.id)
-                            .map((col) => (
+                          </SelectTrigger>
+                          <SelectContent>
+                            {(columns || []).filter(col => col.id !== column.id).map((col) => (
                               <SelectItem key={col.id} value={col.id}>
-                                {col.title}
+                                Move to {col.title}
                               </SelectItem>
                             ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
-              
-              {/* Empty state */}
-              {column.items.length === 0 && (
-                <div className="text-center py-8 text-muted-foreground">
-                  <p className="text-sm mb-2">No items yet</p>
-                  <Button 
-                    variant="ghost" 
-                    size="sm" 
-                    onClick={() => handleCreateWorkItem(column.id)}
-                    className="text-xs"
-                  >
-                    Add first item
-                  </Button>
-                </div>
-              )}
+                          </SelectContent>
+                        </Select>
+                      </div>
+
+                      {/* Assignee Row */}
+                      <div className="flex items-center gap-2 mt-3 pt-3 border-t border-border/30">
+                        <User size={12} className="text-muted-foreground" />
+                        <span className="text-xs text-muted-foreground">{item.assignee}</span>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
             </div>
-          </div>
-        ))}
-      </div>
+          ))}
+        </div>
+      )}
 
       <WorkItemSidePanel
         isOpen={sidePanelOpen}
@@ -413,3 +436,5 @@ export default function KanbanBoard() {
     </div>
   )
 }
+
+export default KanbanBoard
