@@ -425,12 +425,13 @@ export default function ParticleSystem() {
       ref={canvasRef}
       className="block"
       style={{
-        position: "absolute",
+        position: "fixed",
         top: 0,
         left: 0,
-        width: "100%",
-        height: "100%",
+        width: "100vw",
+        height: "100vh",
         zIndex: 1,
+        backgroundColor: "rgb(23, 23, 54)",
       }}
     />
   )
