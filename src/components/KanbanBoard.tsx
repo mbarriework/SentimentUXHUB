@@ -315,8 +315,7 @@ export default function KanbanBoard() {
       <div className="mb-8">
         <div className="flex items-center justify-between mb-6">
           <div>
-            <h2 className="text-2xl font-bold text-foreground mb-2">Team Workspace</h2>
-            <p className="text-muted-foreground">Track progress and manage your team's workflow</p>
+            {/* Removed title and subtitle as requested */}
           </div>
           <div className="flex items-center gap-3">
             <div className="flex items-center gap-2 text-sm text-muted-foreground bg-muted/50 rounded-full px-3 py-1.5">
