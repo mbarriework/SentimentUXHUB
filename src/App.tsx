@@ -14,7 +14,7 @@ function App() {
       <div className="relative w-full h-[60vh] overflow-hidden">
         <ParticleSystem />
         <div className="absolute inset-0 flex flex-col items-center justify-center z-10">
-          <h1 className="font-semibold text-4xl md:text-5xl lg:text-6xl text-white text-center mb-4 tracking-tight">
+          <h1 className="font-semibold text-3xl md:text-4xl lg:text-5xl text-white text-center mb-4 tracking-tight">
             sentiment ux team
           </h1>
           <p className="text-sm md:text-base text-white/80 text-center max-w-2xl px-4 mb-8">
