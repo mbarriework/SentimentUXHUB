@@ -148,7 +148,7 @@ function KanbanBoard({ createWorkItemTrigger, onCreateWorkItemHandled }: KanbanB
   const [selectedCapacityItem, setSelectedCapacityItem] = useState<WorkItem | null>(null)
   const [capacityBlocks, setCapacityBlocks] = useKV<{[key: string]: {item: WorkItem, dates: number[]}}>("capacity-blocks-v2", {
     // Test entries for September 2025 (month 8) - multiple test cases
-    "test1-8-2025": {
+    "test-1__8__2025": {
       item: {
         id: "test-1",
         title: "Design Review",
@@ -160,7 +160,7 @@ function KanbanBoard({ createWorkItemTrigger, onCreateWorkItemHandled }: KanbanB
       },
       dates: [15, 16, 17]
     },
-    "test2-8-2025": {
+    "test-2__8__2025": {
       item: {
         id: "test-2", 
         title: "User Research",
@@ -177,6 +177,10 @@ function KanbanBoard({ createWorkItemTrigger, onCreateWorkItemHandled }: KanbanB
   const [currentYear, setCurrentYear] = useState(new Date().getFullYear())
   const [startDate, setStartDate] = useState("")
   const [endDate, setEndDate] = useState("")
+  
+  // Day panel state for viewing work items for a specific day
+  const [dayPanelOpen, setDayPanelOpen] = useState(false)
+  const [selectedDay, setSelectedDay] = useState<number | null>(null)
 
   // Handle create work item trigger from parent
   useEffect(() => {
@@ -228,8 +232,11 @@ function KanbanBoard({ createWorkItemTrigger, onCreateWorkItemHandled }: KanbanB
       return
     }
     
-    const start = new Date(startDate)
-    const end = new Date(endDate)
+    // Parse dates more explicitly to avoid timezone issues
+    const startParts = startDate.split('-').map(Number)
+    const endParts = endDate.split('-').map(Number)
+    const start = new Date(startParts[0], startParts[1] - 1, startParts[2]) // Month is 0-indexed
+    const end = new Date(endParts[0], endParts[1] - 1, endParts[2]) // Month is 0-indexed
     
     console.log('Start date object:', start)
     console.log('End date object:', end)
@@ -267,7 +274,7 @@ function KanbanBoard({ createWorkItemTrigger, onCreateWorkItemHandled }: KanbanB
       return
     }
     
-    const blockKey = `${selectedCapacityItem.id}-${currentMonth}-${currentYear}`
+    const blockKey = `${selectedCapacityItem.id}__${currentMonth}__${currentYear}`
     console.log('Block key:', blockKey)
     
     // Use functional update to ensure we have the latest state
@@ -318,7 +325,7 @@ function KanbanBoard({ createWorkItemTrigger, onCreateWorkItemHandled }: KanbanB
   const handleAddCapacity = (day: number) => {
     if (!selectedCapacityItem || !capacityBlocks) return
     
-    const blockKey = `${selectedCapacityItem.id}-${currentMonth}-${currentYear}`
+    const blockKey = `${selectedCapacityItem.id}__${currentMonth}__${currentYear}`
     const existingBlock = capacityBlocks[blockKey]
     
     if (existingBlock) {
@@ -375,6 +382,79 @@ function KanbanBoard({ createWorkItemTrigger, onCreateWorkItemHandled }: KanbanB
     }
   }
 
+  // Handle clicking on a day with work items to open day panel
+  const handleDayClick = (day: number) => {
+    setSelectedDay(day)
+    setDayPanelOpen(true)
+  }
+
+  // Handle editing a work item's time range
+  const handleEditWorkItemTime = (capacityKey: string) => {
+    const [itemId, blockMonth, blockYear] = capacityKey.split('__')
+    const workItem = workItems?.find(item => item.id === itemId)
+    
+    if (workItem && capacityBlocks && capacityBlocks[capacityKey]) {
+      // Set up for editing time range
+      setSelectedCapacityItem(workItem)
+      const block = capacityBlocks[capacityKey]
+      // Calculate start and end dates from the block data
+      const dates = block.dates.sort((a, b) => a - b)
+      const startDateStr = new Date(parseInt(blockYear), parseInt(blockMonth), dates[0]).toISOString().split('T')[0]
+      const endDateStr = new Date(parseInt(blockYear), parseInt(blockMonth), dates[dates.length - 1]).toISOString().split('T')[0]
+      setStartDate(startDateStr)
+      setEndDate(endDateStr)
+      setCapacityPlanningMode(true)
+      setDayPanelOpen(false)
+    }
+  }
+
+  // Handle deleting a work item from capacity
+  const handleDeleteWorkItemFromCapacity = (capacityKey: string) => {
+    setCapacityBlocks(prev => {
+      if (!prev) return {}
+      const newBlocks = { ...prev }
+      delete newBlocks[capacityKey]
+      return newBlocks
+    })
+    toast.success("Work item removed from calendar")
+  }
+
+  // Handle adding a new work item to a specific day
+  const handleAddWorkItemToDay = (day: number) => {
+    // Pre-select dates for the chosen day
+    const dateStr = new Date(currentYear, currentMonth, day).toISOString().split('T')[0]
+    setStartDate(dateStr)
+    setEndDate(dateStr)
+    setCapacityPlanningMode(true)
+    setDayPanelOpen(false)
+  }
+
+  // Utility function to truncate text for calendar display
+  const truncateText = (text: string, maxLength: number = 12): string => {
+    if (text.length <= maxLength) return text;
+    return text.substring(0, maxLength - 3) + "...";
+  };
+
+  // Get capacity blocks for a specific day
+  const getCapacityForDay = (day: number): Array<{item: WorkItem, key: string}> => {
+    if (!capacityBlocks) {
+      return []
+    }
+    
+    const dayCapacity: Array<{item: WorkItem, key: string}> = []
+    Object.entries(capacityBlocks).forEach(([blockKey, block]) => {
+      const [itemId, blockMonth, blockYear] = blockKey.split('__')
+      const blockMonthNum = parseInt(blockMonth)
+      const blockYearNum = parseInt(blockYear)
+      
+      if (blockMonthNum === currentMonth && blockYearNum === currentYear && block.dates.includes(day)) {
+        dayCapacity.push({ item: block.item, key: blockKey })
+        console.log(`✓ Day ${day}: Found "${block.item.title}" assigned to "${block.item.assignee}"`)
+      }
+    })
+    return dayCapacity
+  }
+
   // Filter function for backlog items
   const filterWorkItems = (items: WorkItem[]) => {
     if (!filterText.trim()) return items
@@ -425,27 +505,6 @@ function KanbanBoard({ createWorkItemTrigger, onCreateWorkItemHandled }: KanbanB
     // Add days of the month
     for (let day = 1; day <= daysInMonth; day++) {
       calendarDays.push(day)
-    }
-    
-    // Get capacity blocks for a specific day
-    const getCapacityForDay = (day: number): Array<{item: WorkItem, key: string}> => {
-      if (!capacityBlocks) {
-        return []
-      }
-      
-      const dayCapacity: Array<{item: WorkItem, key: string}> = []
-      Object.entries(capacityBlocks).forEach(([blockKey, block]) => {
-        const [itemId, blockMonth, blockYear] = blockKey.split('-')
-        const blockMonthNum = parseInt(blockMonth)
-        const blockYearNum = parseInt(blockYear)
-        
-        if (blockMonthNum === currentMonth && blockYearNum === currentYear && block.dates.includes(day)) {
-          dayCapacity.push({ item: block.item, key: blockKey })
-          console.log(`✓ Day ${day}: Found "${block.item.title}" assigned to "${block.item.assignee}"`)
-        }
-      })
-      
-      return dayCapacity
     }
     
     return (
@@ -516,14 +575,19 @@ function KanbanBoard({ createWorkItemTrigger, onCreateWorkItemHandled }: KanbanB
                 <div
                   key={index}
                   onClick={() => {
-                    if (day && capacityPlanningMode && selectedCapacityItem) {
-                      handleAddCapacity(day)
+                    if (day) {
+                      if (capacityPlanningMode && selectedCapacityItem) {
+                        handleAddCapacity(day)
+                      } else {
+                        // Open day panel to view work items for this day
+                        handleDayClick(day)
+                      }
                     }
                   }}
                   className={`
                     min-h-[100px] p-2 border border-border/30 rounded-md relative
-                    ${day === null ? 'bg-muted/30' : 'bg-card hover:bg-muted/50 transition-colors'}
-                    ${capacityPlanningMode && selectedCapacityItem && day ? 'cursor-pointer hover:bg-accent/20' : ''}
+                    ${day === null ? 'bg-muted/30' : 'bg-card hover:bg-muted/50 transition-colors cursor-pointer'}
+                    ${capacityPlanningMode && selectedCapacityItem && day ? 'hover:bg-accent/20' : ''}
                     ${day === currentDate.getDate() && currentMonth === currentDate.getMonth() && currentYear === currentDate.getFullYear() 
                       ? 'ring-2 ring-accent' : ''}
                   `}
@@ -536,14 +600,15 @@ function KanbanBoard({ createWorkItemTrigger, onCreateWorkItemHandled }: KanbanB
                           {getCapacityForDay(day).map((capacity, idx) => (
                             <div
                               key={idx}
-                              className={`text-xs px-1 py-0.5 rounded text-center truncate ${
+                              className={`text-xs px-1 py-0.5 rounded text-center truncate cursor-pointer hover:opacity-80 transition-opacity ${
                                 capacity.item.priority === "high" ? "bg-red-200 text-red-900" :
                                 capacity.item.priority === "medium" ? "bg-yellow-200 text-yellow-900" :
                                 "bg-green-200 text-green-900"
                               }`}
                               title={`${capacity.item.title} - ${capacity.item.assignee || "Unassigned"}`}
+                              onClick={() => handleDayClick(day)}
                             >
-                              {capacity.item.assignee || "Unassigned"}
+                              {truncateText(capacity.item.title)}
                             </div>
                           ))}
                         </div>
@@ -636,6 +701,14 @@ function KanbanBoard({ createWorkItemTrigger, onCreateWorkItemHandled }: KanbanB
                       <div className="flex gap-2">
                         <Button
                           size="sm"
+                          onClick={handleAddCapacityRange}
+                          disabled={!startDate || !endDate}
+                          className="flex-1 bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white font-medium shadow-lg hover:shadow-xl transition-all duration-200"
+                        >
+                          Add
+                        </Button>
+                        <Button
+                          size="sm"
                           variant="outline"
                           onClick={() => {
                             setSelectedCapacityItem(null)
@@ -646,14 +719,6 @@ function KanbanBoard({ createWorkItemTrigger, onCreateWorkItemHandled }: KanbanB
                           className="flex-1"
                         >
                           Cancel
-                        </Button>
-                        <Button
-                          size="sm"
-                          onClick={handleAddCapacityRange}
-                          disabled={!startDate || !endDate}
-                          className="flex-1 bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white font-medium shadow-lg hover:shadow-xl transition-all duration-200"
-                        >
-                          Done
                         </Button>
                       </div>
                     </div>
@@ -792,7 +857,7 @@ function KanbanBoard({ createWorkItemTrigger, onCreateWorkItemHandled }: KanbanB
                     <div className="flex flex-col">
                       <h3 className="font-semibold text-lg text-foreground">{column.title}</h3>
                       {column.id === "upcoming" && (
-                        <p className="text-xs text-muted-foreground mt-1">(ordered by priority)</p>
+                        <p className="text-xs text-muted-foreground mt-1">October - December | ordered by priority</p>
                       )}
                     </div>
                     <Button
@@ -1045,6 +1110,82 @@ function KanbanBoard({ createWorkItemTrigger, onCreateWorkItemHandled }: KanbanB
         editingItem={editingItem}
         status={targetStatus}
       />
+
+      {/* Day Panel for viewing work items on a specific day */}
+      {dayPanelOpen && selectedDay && (
+        <div className="fixed inset-y-0 right-0 w-96 bg-background border-l border-border z-50 overflow-hidden flex flex-col shadow-lg">
+          <div className="flex items-center justify-between p-4 border-b border-border">
+            <h2 className="text-lg font-semibold">
+              Work Items for Day {selectedDay}
+            </h2>
+            <button
+              onClick={() => setDayPanelOpen(false)}
+              className="text-muted-foreground hover:text-foreground transition-colors"
+            >
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M18 6L6 18M6 6l12 12" />
+              </svg>
+            </button>
+          </div>
+          
+          <div className="flex-1 overflow-auto p-4">
+            <div className="space-y-3">
+              {getCapacityForDay(selectedDay).map((capacity, idx) => (
+                <div
+                  key={idx}
+                  className="bg-card border border-border rounded-lg p-3 hover:bg-accent/5 transition-colors"
+                >
+                  <div className="flex items-center justify-between">
+                    <div className="flex-1">
+                      <h3 className="font-medium text-sm text-foreground">
+                        {capacity.item.title}
+                      </h3>
+                      <p className="text-xs text-muted-foreground mt-1">
+                        {capacity.item.assignee || "Unassigned"} • {capacity.item.priority} priority
+                      </p>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <button
+                        className="p-1 text-muted-foreground hover:text-foreground transition-colors"
+                        title="Edit time range"
+                        onClick={() => handleEditWorkItemTime(capacity.key)}
+                      >
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                          <path d="M12 20h9M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z" />
+                        </svg>
+                      </button>
+                      <button
+                        className="p-1 text-muted-foreground hover:text-red-500 transition-colors"
+                        title="Delete work item"
+                        onClick={() => handleDeleteWorkItemFromCapacity(capacity.key)}
+                      >
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                          <path d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+                        </svg>
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              ))}
+              
+              {getCapacityForDay(selectedDay).length === 0 && (
+                <div className="text-center text-muted-foreground py-8">
+                  <p>No work items scheduled for this day</p>
+                </div>
+              )}
+            </div>
+            
+            <div className="mt-6 pt-4 border-t border-border">
+              <button 
+                className="w-full bg-primary text-primary-foreground px-4 py-2 rounded-md hover:bg-primary/90 transition-colors text-sm"
+                onClick={() => selectedDay && handleAddWorkItemToDay(selectedDay)}
+              >
+                Add Work Item to This Day
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
