@@ -621,38 +621,6 @@ function KanbanBoard({ createWorkItemTrigger, onCreateWorkItemHandled }: KanbanB
             </Card>
           )}
         </div>
-        
-        {/* Team Legend */}
-        <div className="mt-6 grid grid-cols-2 md:grid-cols-4 gap-4">
-          <div className="flex items-center gap-3 p-3 rounded-lg bg-blue-50 border border-blue-200">
-            <div className="w-3 h-3 rounded bg-blue-500"></div>
-            <div>
-              <div className="font-medium text-sm">UI Team</div>
-              <div className="text-xs text-muted-foreground">Frontend & Interface</div>
-            </div>
-          </div>
-          <div className="flex items-center gap-3 p-3 rounded-lg bg-purple-50 border border-purple-200">
-            <div className="w-3 h-3 rounded bg-purple-500"></div>
-            <div>
-              <div className="font-medium text-sm">Design Team</div>
-              <div className="text-xs text-muted-foreground">Visual & UX Design</div>
-            </div>
-          </div>
-          <div className="flex items-center gap-3 p-3 rounded-lg bg-green-50 border border-green-200">
-            <div className="w-3 h-3 rounded bg-green-500"></div>
-            <div>
-              <div className="font-medium text-sm">Research Team</div>
-              <div className="text-xs text-muted-foreground">User Research</div>
-            </div>
-          </div>
-          <div className="flex items-center gap-3 p-3 rounded-lg bg-orange-50 border border-orange-200">
-            <div className="w-3 h-3 rounded bg-orange-500"></div>
-            <div>
-              <div className="font-medium text-sm">QA Team</div>
-              <div className="text-xs text-muted-foreground">Quality Assurance</div>
-            </div>
-          </div>
-        </div>
       </div>
     )
   }
