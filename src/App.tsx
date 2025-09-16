@@ -1,5 +1,6 @@
 import ParticleSystem from "./components/ParticleSystem"
 import KanbanBoard from "./components/KanbanBoard"
+import { Toaster } from "sonner"
 
 function App() {
   return (
@@ -21,6 +22,8 @@ function App() {
       <div className="relative w-full bg-background z-20">
         <KanbanBoard />
       </div>
+      
+      <Toaster />
     </div>
   )
 }

@@ -1,9 +1,11 @@
 import { useState } from "react"
 import { useKV } from "@github/spark/hooks"
-import { Plus, PencilSimple, Trash, User } from "@phosphor-icons/react"
+import { Plus, PencilSimple, Trash, User, ArrowRight, Database, Eraser } from "@phosphor-icons/react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { toast } from "sonner"
 import WorkItemSidePanel from "./WorkItemSidePanel"
 
 interface WorkItem {
@@ -25,22 +27,66 @@ const initialColumns: Column[] = [
   {
     id: "backlog",
     title: "Backlog",
-    items: []
+    items: [
+      {
+        id: "sample-1",
+        title: "User Research Initiative",
+        description: "Conduct user interviews to understand pain points and gather feedback on the current workflow",
+        assignee: "Sarah Chen",
+        priority: "high",
+        type: "research"
+      },
+      {
+        id: "sample-2", 
+        title: "Design System Documentation",
+        description: "Create comprehensive documentation for the component library and design tokens",
+        assignee: "Alex Rodriguez",
+        priority: "medium",
+        type: "design"
+      }
+    ]
   },
   {
     id: "in-progress",
     title: "In Progress", 
-    items: []
+    items: [
+      {
+        id: "sample-3",
+        title: "Mobile App Prototype",
+        description: "Build interactive prototype for the mobile dashboard experience",
+        assignee: "Jordan Kim",
+        priority: "high",
+        type: "prototype"
+      }
+    ]
   },
   {
     id: "review",
     title: "Review",
-    items: []
+    items: [
+      {
+        id: "sample-4",
+        title: "Accessibility Audit",
+        description: "Review current application for WCAG compliance and accessibility improvements",
+        assignee: "Morgan Davis",
+        priority: "medium",
+        type: "testing"
+      }
+    ]
   },
   {
     id: "done",
     title: "Done",
-    items: []
+    items: [
+      {
+        id: "sample-5",
+        title: "Navigation Redesign",
+        description: "Completed mobile-first navigation system with improved user experience",
+        assignee: "Taylor Brown",
+        priority: "low",
+        type: "design"
+      }
+    ]
   }
 ]
 
@@ -68,6 +114,39 @@ export default function KanbanBoard() {
         items: col.items.filter((item) => item.id !== itemId),
       }))
     )
+    toast.success("Work item deleted")
+  }
+
+  const handleMoveWorkItem = (itemId: string, newColumnId: string) => {
+    setColumns((prev = []) => {
+      let itemToMove: WorkItem | null = null
+      const updatedColumns = prev.map((col) => {
+        const item = col.items.find(item => item.id === itemId)
+        if (item) {
+          itemToMove = item
+          return {
+            ...col,
+            items: col.items.filter(item => item.id !== itemId)
+          }
+        }
+        return col
+      })
+
+      if (itemToMove) {
+        return updatedColumns.map((col) => 
+          col.id === newColumnId 
+            ? { ...col, items: [...col.items, itemToMove!] }
+            : col
+        )
+      }
+      return updatedColumns
+    })
+    toast.success("Work item moved")
+  }
+
+  const handleClearStorage = () => {
+    setColumns(initialColumns)
+    toast.success("Storage cleared - sample data restored")
   }
 
   const handleSaveWorkItem = (itemData: Omit<WorkItem, "id"> | WorkItem) => {
@@ -80,6 +159,7 @@ export default function KanbanBoard() {
           ),
         }))
       )
+      toast.success("Work item updated")
     } else {
       const newItem: WorkItem = {
         id: Date.now().toString(),
@@ -90,6 +170,7 @@ export default function KanbanBoard() {
           col.id === targetColumnId ? { ...col, items: [...col.items, newItem] } : col
         )
       )
+      toast.success("Work item created")
     }
   }
 
@@ -115,8 +196,46 @@ export default function KanbanBoard() {
   return (
     <div className="p-6 md:p-8 min-h-screen bg-background">
       <div className="mb-8">
-        <h2 className="text-3xl md:text-4xl font-bold text-foreground mb-2">Project Board</h2>
-        <p className="text-muted-foreground text-lg">Track and manage your team's workflow</p>
+        <div className="flex items-center justify-between mb-4">
+          <div>
+            <h2 className="text-3xl md:text-4xl font-bold text-foreground mb-2">Project Board</h2>
+            <p className="text-muted-foreground text-lg">Track and manage your team's workflow</p>
+          </div>
+          <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+              <Database size={16} />
+              <span>Data persisted automatically</span>
+            </div>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleClearStorage}
+              className="flex items-center gap-2"
+            >
+              <Eraser size={16} />
+              Reset Data
+            </Button>
+          </div>
+        </div>
+      </div>
+
+      {/* Storage Information Card */}
+      <div className="mt-8 max-w-2xl">
+        <Card className="bg-accent/5 border-accent/20">
+          <CardContent className="p-4">
+            <div className="flex items-start gap-3">
+              <Database className="text-accent mt-1" size={20} />
+              <div>
+                <h4 className="font-medium text-card-foreground mb-1">Persistent Data Storage</h4>
+                <p className="text-sm text-muted-foreground">
+                  All work items are automatically saved using GitHub Spark's storage system. 
+                  Your data persists between sessions and page refreshes. Try creating, editing, 
+                  or moving items - everything will be saved automatically!
+                </p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
       </div>
       
       <div className="grid gap-6 grid-cols-1 md:grid-cols-2 lg:grid-cols-4">
@@ -166,11 +285,34 @@ export default function KanbanBoard() {
                         </div>
 
                         {item.assignee && (
-                          <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                          <div className="flex items-center gap-2 text-sm text-muted-foreground mb-3">
                             <User size={14} />
                             <span>{item.assignee}</span>
                           </div>
                         )}
+
+                        <div className="flex items-center gap-2">
+                          <Select
+                            value=""
+                            onValueChange={(newColumnId) => handleMoveWorkItem(item.id, newColumnId)}
+                          >
+                            <SelectTrigger className="h-7 text-xs flex-1">
+                              <div className="flex items-center gap-1">
+                                <ArrowRight size={12} />
+                                <SelectValue placeholder="Move to..." />
+                              </div>
+                            </SelectTrigger>
+                            <SelectContent>
+                              {(columns || [])
+                                .filter(col => col.id !== column.id)
+                                .map(col => (
+                                <SelectItem key={col.id} value={col.id}>
+                                  {col.title}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </div>
                       </div>
                       
                       <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
