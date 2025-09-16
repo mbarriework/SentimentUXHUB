@@ -14,6 +14,8 @@ interface WorkItem {
   assignee: string
   priority: "low" | "medium" | "high"
   type: "research" | "design" | "prototype" | "testing"
+  quarter?: string
+  size?: string
 }
 
 interface WorkItemSidePanelProps {
