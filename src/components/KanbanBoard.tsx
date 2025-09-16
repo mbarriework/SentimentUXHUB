@@ -1,4 +1,4 @@
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { useKV } from "@github/spark/hooks"
 import { Plus, PencilSimple, Trash, User, ArrowRight, Database } from "@phosphor-icons/react"
 import { Button } from "@/components/ui/button"
@@ -91,7 +91,11 @@ const initialColumns: Column[] = [
   }
 ]
 
-export default function KanbanBoard() {
+interface KanbanBoardProps {
+  onCreateWorkItemRef?: (createFn: () => void) => void
+}
+
+export default function KanbanBoard({ onCreateWorkItemRef }: KanbanBoardProps) {
   const [columns, setColumns] = useKV<Column[]>("kanban-columns", initialColumns)
   const [sidePanelOpen, setSidePanelOpen] = useState(false)
   const [editingItem, setEditingItem] = useState<WorkItem | null>(null)
@@ -102,6 +106,13 @@ export default function KanbanBoard() {
     setTargetColumnId(columnId || "backlog")
     setSidePanelOpen(true)
   }
+
+  // Expose the create function to parent component
+  useEffect(() => {
+    if (onCreateWorkItemRef) {
+      onCreateWorkItemRef(() => handleCreateWorkItem())
+    }
+  }, [onCreateWorkItemRef])
 
   const handleEditWorkItem = (item: WorkItem) => {
     setEditingItem(item)
