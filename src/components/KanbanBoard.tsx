@@ -195,148 +195,158 @@ export default function KanbanBoard() {
   }
 
   const renderWorkItemCard = (item: WorkItem, column: Column) => (
-    <Card key={item.id} className="group hover:shadow-md transition-shadow">
-      <CardContent className="p-4">
-        <div className="flex items-start justify-between mb-3">
-          <div className="flex-1">
-            <h4 className="font-medium text-card-foreground mb-1 line-clamp-2">
-              {item.title}
-            </h4>
-            <p className="text-sm text-muted-foreground line-clamp-2 mb-3">
-              {item.description}
-            </p>
-
-            <div className="flex flex-wrap gap-2 mb-3">
-              <Badge className={getPriorityColor(item.priority)} variant="outline">
-                {item.priority}
-              </Badge>
-              <Badge className={getTypeColor(item.type)} variant="outline">
-                {item.type}
-              </Badge>
-            </div>
-
-            {item.assignee && (
-              <div className="flex items-center gap-2 text-sm text-muted-foreground mb-3">
-                <User size={14} />
-                <span>{item.assignee}</span>
-              </div>
-            )}
-
-            <div className="flex items-center gap-2">
-              <Select
-                value=""
-                onValueChange={(newColumnId) => handleMoveWorkItem(item.id, newColumnId)}
-              >
-                <SelectTrigger className="h-7 text-xs flex-1">
-                  <div className="flex items-center gap-1">
-                    <ArrowRight size={12} />
-                    <SelectValue placeholder="Move to..." />
-                  </div>
-                </SelectTrigger>
-                <SelectContent>
-                  {(columns || [])
-                    .filter((col) => col.id !== column.id)
-                    .map((col) => (
-                      <SelectItem key={col.id} value={col.id}>
-                        {col.title}
-                      </SelectItem>
-                    ))}
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
-
-          <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+    <Card key={item.id} className="group hover:shadow-lg transition-all duration-200 hover:border-accent/50 bg-card/80 backdrop-blur-sm">
+      <CardContent className="p-3">
+        {/* Header with title and actions */}
+        <div className="flex items-start justify-between mb-2">
+          <h4 className="font-medium text-card-foreground text-sm leading-tight pr-2">
+            {item.title}
+          </h4>
+          <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity shrink-0">
             <Button
               variant="ghost"
               size="sm"
               onClick={() => handleEditWorkItem(item)}
-              className="h-8 w-8 p-0 hover:bg-accent"
+              className="h-6 w-6 p-0 hover:bg-accent"
             >
-              <PencilSimple size={14} />
+              <PencilSimple size={12} />
             </Button>
             <Button
               variant="ghost"
               size="sm"
               onClick={() => handleDeleteWorkItem(item.id)}
-              className="h-8 w-8 p-0 hover:bg-destructive/10 hover:text-destructive"
+              className="h-6 w-6 p-0 hover:bg-destructive/10 hover:text-destructive"
             >
-              <Trash size={14} />
+              <Trash size={12} />
             </Button>
           </div>
         </div>
+
+        {/* Description */}
+        <p className="text-xs text-muted-foreground mb-3 line-clamp-2 leading-relaxed">
+          {item.description}
+        </p>
+
+        {/* Badges */}
+        <div className="flex flex-wrap gap-1 mb-3">
+          <Badge className={`${getPriorityColor(item.priority)} text-xs px-2 py-0.5`} variant="outline">
+            {item.priority}
+          </Badge>
+          <Badge className={`${getTypeColor(item.type)} text-xs px-2 py-0.5`} variant="outline">
+            {item.type}
+          </Badge>
+        </div>
+
+        {/* Assignee */}
+        {item.assignee && (
+          <div className="flex items-center gap-1.5 text-xs text-muted-foreground mb-3">
+            <User size={12} />
+            <span className="truncate">{item.assignee}</span>
+          </div>
+        )}
+
+        {/* Move selector */}
+        <Select
+          value=""
+          onValueChange={(newColumnId) => handleMoveWorkItem(item.id, newColumnId)}
+        >
+          <SelectTrigger className="h-7 text-xs border-dashed hover:border-solid transition-all">
+            <div className="flex items-center gap-1">
+              <ArrowRight size={12} />
+              <SelectValue placeholder="Move to..." />
+            </div>
+          </SelectTrigger>
+          <SelectContent>
+            {(columns || [])
+              .filter((col) => col.id !== column.id)
+              .map((col) => (
+                <SelectItem key={col.id} value={col.id}>
+                  {col.title}
+                </SelectItem>
+              ))}
+          </SelectContent>
+        </Select>
       </CardContent>
     </Card>
   )
 
   const renderColumnHeader = (column: Column) => (
-    <Card className="border-2 border-dashed border-border bg-card/50">
-      <CardHeader className="pb-3">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <h3 className="font-semibold text-card-foreground">{column.title}</h3>
-            <Badge variant="secondary" className="text-xs">
-              {column.items.length}
-            </Badge>
-          </div>
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => handleCreateWorkItem(column.id)}
-            className="h-8 w-8 p-0 hover:bg-accent"
-          >
-            <Plus size={16} />
-          </Button>
+    <div className="sticky top-0 z-10 bg-background/95 backdrop-blur-sm border border-border rounded-lg p-3 mb-4">
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <h3 className="font-semibold text-foreground text-base">{column.title}</h3>
+          <Badge variant="secondary" className="text-xs font-medium px-2 py-1">
+            {column.items.length}
+          </Badge>
         </div>
-      </CardHeader>
-    </Card>
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => handleCreateWorkItem(column.id)}
+          className="h-8 px-3 text-xs hover:bg-accent transition-colors"
+        >
+          <Plus size={14} className="mr-1" />
+          Add
+        </Button>
+      </div>
+    </div>
   )
 
   const renderEmptyState = (column: Column) => (
-    <div className="text-center py-8 text-muted-foreground">
-      <p className="text-sm">No items yet</p>
+    <div className="text-center py-12 border-2 border-dashed border-border/50 rounded-lg bg-muted/20">
+      <div className="mx-auto w-12 h-12 bg-muted rounded-full flex items-center justify-center mb-3">
+        <Plus size={20} className="text-muted-foreground" />
+      </div>
+      <p className="text-sm text-muted-foreground mb-3">No items in {column.title.toLowerCase()}</p>
       <Button
         variant="ghost"
         size="sm"
         onClick={() => handleCreateWorkItem(column.id)}
-        className="mt-2 text-xs"
+        className="text-xs hover:bg-accent"
       >
-        Add first item
+        Add your first item
       </Button>
     </div>
   )
 
   return (
     <div className="p-6 md:p-8 min-h-screen bg-background">
-      <div className="mb-4">
-        <div className="flex items-center justify-between mb-4">
+      {/* Header */}
+      <div className="mb-8">
+        <div className="flex items-center justify-between mb-6">
           <div>
-            
+            <h2 className="text-2xl font-bold text-foreground mb-2">Team Workspace</h2>
+            <p className="text-muted-foreground">Track progress and manage your team's workflow</p>
           </div>
           <div className="flex items-center gap-3">
-            <div className="flex items-center gap-2 text-sm text-muted-foreground">
-              <Database size={16} />
-              <span>Saved automatically</span>
+            <div className="flex items-center gap-2 text-sm text-muted-foreground bg-muted/50 rounded-full px-3 py-1.5">
+              <Database size={14} />
+              <span>Auto-saved</span>
             </div>
           </div>
         </div>
       </div>
       
-      <div className="mt-4">
-        <Tabs defaultValue="working">
-          <TabsList>
-            <TabsTrigger value="working">Currently Working On</TabsTrigger>
-            <TabsTrigger value="backlog">Backlog</TabsTrigger>
+      {/* Tab Navigation */}
+      <div className="mb-6">
+        <Tabs defaultValue="working" className="w-full">
+          <TabsList className="grid w-full max-w-md grid-cols-2 mb-6">
+            <TabsTrigger value="working" className="text-sm font-medium">
+              Currently Working On
+            </TabsTrigger>
+            <TabsTrigger value="backlog" className="text-sm font-medium">
+              Backlog
+            </TabsTrigger>
           </TabsList>
 
-          <TabsContent value="working">
-            <div className="grid gap-6 grid-cols-1 md:grid-cols-3">
+          <TabsContent value="working" className="mt-0">
+            <div className="grid gap-4 grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3">
               {(columns || [])
                 .filter((col) => ["in-progress", "review", "done"].includes(col.id))
                 .map((column) => (
-                  <div key={column.id} className="space-y-4">
+                  <div key={column.id} className="space-y-3">
                     {renderColumnHeader(column)}
-                    <div className="space-y-3">
+                    <div className="space-y-3 min-h-[200px]">
                       {column.items.map((item) => renderWorkItemCard(item, column))}
                       {column.items.length === 0 && renderEmptyState(column)}
                     </div>
@@ -345,14 +355,14 @@ export default function KanbanBoard() {
             </div>
           </TabsContent>
 
-          <TabsContent value="backlog">
-            <div className="grid gap-6 grid-cols-1 md:grid-cols-1 lg:grid-cols-1">
+          <TabsContent value="backlog" className="mt-0">
+            <div className="max-w-4xl mx-auto">
               {(columns || [])
                 .filter((col) => col.id === "backlog")
                 .map((column) => (
-                  <div key={column.id} className="space-y-4">
+                  <div key={column.id} className="space-y-3">
                     {renderColumnHeader(column)}
-                    <div className="space-y-3">
+                    <div className="grid gap-3 grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
                       {column.items.map((item) => renderWorkItemCard(item, column))}
                       {column.items.length === 0 && renderEmptyState(column)}
                     </div>

@@ -21,8 +21,6 @@ export default function ParticleSystem() {
     const dustParticles: DustParticle[] = []
     const ripples: Ripple[] = []
     const techRipples: Ripple[] = []
-    const ripples: Ripple[] = []
-    const techRipples: Ripple[] = []
 
     // Mouse state object to track the user's cursor
     const mouse = (() => {
