@@ -21,8 +21,8 @@ function App() {
           <h1 className="font-semibold text-3xl md:text-4xl lg:text-5xl text-white text-center mb-4 tracking-tight">
             sentiment ux team
           </h1>
-          <p className="text-white/80 text-center text-lg mb-6">
-            Welcome to our hub
+          <p className="text-white/80 text-center text-lg mb-6 max-w-2xl">
+            Welcome to our team hub, add work items, see our team's capacity and more! Excited to elevate our customer experiences
           </p>
           <Button 
             onClick={handleCreateWorkItem}
