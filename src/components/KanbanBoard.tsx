@@ -74,20 +74,6 @@ const initialCurrentColumns: Column[] = [
         type: "design"
       }
     ]
-  },
-  {
-    id: "done",
-    title: "Done",
-    items: [
-      {
-        id: "sample-5",
-        title: "Navigation Redesign",
-        description: "Completed mobile navigation improvements",
-        assignee: "UI Team",
-        priority: "low",
-        type: "design"
-      }
-    ]
   }
 ]
 
