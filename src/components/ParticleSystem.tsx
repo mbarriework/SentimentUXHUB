@@ -90,7 +90,7 @@ export default function ParticleSystem() {
         this.vx = Math.cos(Math.random() * Math.PI * 2) * baseSpeed
         this.vy = Math.sin(Math.random() * Math.PI * 2) * baseSpeed
         this.size = isFirework ? Math.random() * 2 + 2 : Math.random() * 3 + 1
-        this.hue = 200 + Math.random() * 60
+        this.hue = Math.random() * 360
         this.alpha = 1
         this.sizeDirection = Math.random() < 0.5 ? -1 : 1
         this.trail = []
