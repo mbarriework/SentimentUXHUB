@@ -10,10 +10,10 @@ function App() {
         <ParticleSystem />
         <div className="absolute inset-0 flex flex-col items-center justify-center z-10">
           <h1 className="font-bold text-4xl md:text-6xl text-white text-center mb-4">
-            Interactive Particle Kanban
+            Sentiment UX Team
           </h1>
           <p className="text-xl text-white/80 text-center max-w-2xl px-4">
-            Experience project management reimagined with dynamic particle interactions
+            Welcome to our hub, add a work item or view our team's current bandwidth and backlog, excited to elevate our user's experiences!
           </p>
         </div>
       </div>
