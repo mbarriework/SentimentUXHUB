@@ -12,6 +12,9 @@ function App() {
           <h1 className="font-semibold text-3xl md:text-4xl lg:text-5xl text-white text-center mb-4 tracking-tight">
             sentiment ux team
           </h1>
+          <p className="text-white/80 text-center text-lg">
+            Welcome to our hub
+          </p>
         </div>
       </div>
       

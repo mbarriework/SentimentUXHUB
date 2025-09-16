@@ -278,7 +278,7 @@ function KanbanBoard() {
               onClick={() => setViewMode("current")}
               className={`px-4 py-2 text-sm font-medium rounded-md transition-all ${
                 viewMode === "current"
-                  ? "bg-background text-foreground shadow-sm"
+                  ? "bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-md"
                   : "text-muted-foreground hover:text-foreground"
               }`}
             >
@@ -288,7 +288,7 @@ function KanbanBoard() {
               onClick={() => setViewMode("backlog")}
               className={`px-4 py-2 text-sm font-medium rounded-md transition-all ${
                 viewMode === "backlog"
-                  ? "bg-background text-foreground shadow-sm"
+                  ? "bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-md"
                   : "text-muted-foreground hover:text-foreground"
               }`}
             >
@@ -298,7 +298,7 @@ function KanbanBoard() {
               onClick={() => setViewMode("capacity")}
               className={`px-4 py-2 text-sm font-medium rounded-md transition-all ${
                 viewMode === "capacity"
-                  ? "bg-background text-foreground shadow-sm"
+                  ? "bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-md"
                   : "text-muted-foreground hover:text-foreground"
               }`}
             >
@@ -315,7 +315,6 @@ function KanbanBoard() {
 
         {/* Subtitle and Create Button */}
         <div className="text-center mb-6">
-          <p className="text-muted-foreground mb-4">Welcome to our hub</p>
           <Button 
             onClick={() => handleCreateWorkItem()}
             className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-medium px-6 py-2 rounded-lg shadow-lg hover:shadow-xl transition-all duration-200"
