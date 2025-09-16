@@ -12,10 +12,10 @@ interface WorkItem {
   id: string
   title: string
   description: string
-  assignee: string
+  assignee: string | string[]
   priority: "low" | "medium" | "high"
   type: "research" | "design" | "prototype" | "testing"
-  status: "new" | "in-progress" | "done" | "upcoming" | "potential"
+  status: "new" | "in-progress" | "done" | "upcoming" | "potential" | "other"
   specLink?: string
   pmOwner?: string
   dueDate?: string
@@ -42,10 +42,10 @@ export default function WorkItemSidePanel({
   const [formData, setFormData] = useState<{
     title: string
     description: string
-    assignee: string
+    assignee: string | string[]
     priority: "low" | "medium" | "high"
     type: "research" | "design" | "prototype" | "testing"
-    status: "new" | "in-progress" | "done" | "upcoming" | "potential"
+    status: "new" | "in-progress" | "done" | "upcoming" | "potential" | "other"
     specLink: string
     pmOwner: string
     dueDate: string
@@ -58,7 +58,7 @@ export default function WorkItemSidePanel({
     assignee: "",
     priority: "medium",
     type: "design",
-    status: "potential",
+    status: "other",
     specLink: "",
     pmOwner: "",
     dueDate: "",
@@ -72,7 +72,7 @@ export default function WorkItemSidePanel({
       setFormData({
         title: editingItem.title,
         description: editingItem.description,
-        assignee: editingItem.assignee,
+        assignee: Array.isArray(editingItem.assignee) ? editingItem.assignee.join(", ") : editingItem.assignee,
         priority: editingItem.priority,
         type: editingItem.type,
         status: editingItem.status,
@@ -90,7 +90,7 @@ export default function WorkItemSidePanel({
         assignee: "",
         priority: "medium",
         type: "design",
-        status: status || "potential",
+        status: status || "other",
         specLink: "",
         pmOwner: "",
         dueDate: "",
@@ -104,6 +104,8 @@ export default function WorkItemSidePanel({
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
     if (!formData.title.trim()) return
+    if (!formData.description.trim()) return
+    if (!formData.pmOwner.trim()) return
 
     // Convert empty strings to undefined for optional fields
     const cleanedData = {
@@ -142,12 +144,13 @@ export default function WorkItemSidePanel({
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="description">Description</Label>
+            <Label htmlFor="description">Description *</Label>
             <Textarea
               id="description"
               value={formData.description}
               onChange={(e) => setFormData({ ...formData, description: e.target.value })}
               placeholder="Enter description"
+              required
               rows={3}
             />
           </div>
@@ -164,12 +167,13 @@ export default function WorkItemSidePanel({
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="pmOwner">PM Owner</Label>
+            <Label htmlFor="pmOwner">PM Owner *</Label>
             <Input
               id="pmOwner"
               value={formData.pmOwner}
               onChange={(e) => setFormData({ ...formData, pmOwner: e.target.value })}
               placeholder="Enter PM owner name"
+              required
             />
           </div>
 
@@ -193,7 +197,7 @@ export default function WorkItemSidePanel({
                 <div className="space-y-2">
                   <Label htmlFor="assignee">Assignee</Label>
                   <Select
-                    value={formData.assignee}
+                    value={Array.isArray(formData.assignee) ? formData.assignee.join(", ") : formData.assignee}
                     onValueChange={(value: string) => 
                       setFormData({ ...formData, assignee: value })
                     }
@@ -205,6 +209,7 @@ export default function WorkItemSidePanel({
                       <SelectItem value="Unassigned">Unassigned</SelectItem>
                       <SelectItem value="Maggie">Maggie</SelectItem>
                       <SelectItem value="Lenny">Lenny</SelectItem>
+                      <SelectItem value="Maggie, Lenny">Maggie & Lenny</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>

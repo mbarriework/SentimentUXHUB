@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react"
 import { useKV } from "@github/spark/hooks"
-import { Plus, PencilSimple, Trash, User, ArrowRight, Database, DotsThree } from "@phosphor-icons/react"
+import { Plus, PencilSimple, Trash, User, ArrowRight, Database, DotsThree, CaretUp, CaretDown, ArrowUp, ArrowDown, X, MagnifyingGlass } from "@phosphor-icons/react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
@@ -25,7 +25,7 @@ interface WorkItem {
   assignee: string
   priority: "low" | "medium" | "high"
   type: "research" | "design" | "prototype" | "testing"
-  status: "new" | "in-progress" | "done" | "upcoming" | "potential"
+  status: "new" | "in-progress" | "done" | "upcoming" | "potential" | "other"
   specLink?: string
   pmOwner?: string
   dueDate?: string
@@ -42,8 +42,9 @@ const CURRENT_WORK_COLUMNS = [
 ]
 
 const BACKLOG_COLUMNS = [
-  { id: "upcoming", title: "Q2 Backlog" },
-  { id: "potential", title: "Other" }
+  { id: "upcoming", title: "Official Q2 Backlog" },
+  { id: "potential", title: "UX Request" },
+  { id: "other", title: "Other" }
 ]
 
 // Initial work items
@@ -138,6 +139,9 @@ function KanbanBoard({ createWorkItemTrigger, onCreateWorkItemHandled }: KanbanB
   const [sidePanelOpen, setSidePanelOpen] = useState(false)
   const [editingItem, setEditingItem] = useState<WorkItem | null>(null)
   const [targetStatus, setTargetStatus] = useState<WorkItem["status"]>("new")
+  
+  // Filter state for backlog
+  const [filterText, setFilterText] = useState("")
   
   // Capacity planning state
   const [capacityPlanningMode, setCapacityPlanningMode] = useState(false)
@@ -266,39 +270,43 @@ function KanbanBoard({ createWorkItemTrigger, onCreateWorkItemHandled }: KanbanB
     const blockKey = `${selectedCapacityItem.id}-${currentMonth}-${currentYear}`
     console.log('Block key:', blockKey)
     
-    const existingBlock = capacityBlocks[blockKey]
-    console.log('Existing block:', existingBlock)
-    
-    if (existingBlock) {
-      // Merge with existing dates
-      const newDates = [...new Set([...existingBlock.dates, ...dates])].sort((a, b) => a - b)
-      console.log('Merging with existing dates. New dates:', newDates)
+    // Use functional update to ensure we have the latest state
+    setCapacityBlocks(prevBlocks => {
+      if (!prevBlocks) return {}
       
-      setCapacityBlocks({
-        ...capacityBlocks,
-        [blockKey]: {
-          ...existingBlock,
-          dates: newDates
+      const existingBlock = prevBlocks[blockKey]
+      console.log('Existing block:', existingBlock)
+      
+      let newBlocks
+      if (existingBlock) {
+        // Merge with existing dates
+        const newDates = [...new Set([...existingBlock.dates, ...dates])].sort((a, b) => a - b)
+        console.log('Merging with existing dates. New dates:', newDates)
+        
+        newBlocks = {
+          ...prevBlocks,
+          [blockKey]: {
+            ...existingBlock,
+            dates: newDates
+          }
         }
-      })
-    } else {
-      // Create new capacity block
-      console.log('Creating new capacity block')
-      const newBlocks = {
-        ...capacityBlocks,
-        [blockKey]: {
-          item: selectedCapacityItem,
-          dates: dates.sort((a, b) => a - b)
+      } else {
+        // Create new capacity block
+        console.log('Creating new capacity block')
+        newBlocks = {
+          ...prevBlocks,
+          [blockKey]: {
+            item: selectedCapacityItem,
+            dates: dates.sort((a, b) => a - b)
+          }
         }
       }
+      
       console.log('New capacity blocks object:', newBlocks)
-      setCapacityBlocks(newBlocks)
-    }
+      return newBlocks
+    })
     
     toast.success(`Added ${selectedCapacityItem.title} to calendar for ${dates.length} day${dates.length > 1 ? 's' : ''}`)
-    
-    // Debug: Log the capacity blocks
-    console.log('Capacity blocks after adding:', capacityBlocks)
     
     // Reset form
     setSelectedCapacityItem(null)
@@ -365,6 +373,25 @@ function KanbanBoard({ createWorkItemTrigger, onCreateWorkItemHandled }: KanbanB
         toast.success("Work item created")
       }
     }
+  }
+
+  // Filter function for backlog items
+  const filterWorkItems = (items: WorkItem[]) => {
+    if (!filterText.trim()) return items
+    
+    const searchText = filterText.toLowerCase()
+    return items.filter(item => {
+      const assigneeText = Array.isArray(item.assignee) 
+        ? item.assignee.join(' ').toLowerCase()
+        : (item.assignee || '').toLowerCase()
+      
+      return (
+        item.title.toLowerCase().includes(searchText) ||
+        item.description.toLowerCase().includes(searchText) ||
+        assigneeText.includes(searchText) ||
+        (item.pmOwner || '').toLowerCase().includes(searchText)
+      )
+    })
   }
 
   const renderCapacityView = () => {
@@ -606,14 +633,29 @@ function KanbanBoard({ createWorkItemTrigger, onCreateWorkItemHandled }: KanbanB
                         Select a date range to schedule this work item on the calendar
                       </p>
                       
-                      <Button
-                        size="sm"
-                        onClick={handleAddCapacityRange}
-                        disabled={!startDate || !endDate}
-                        className="w-full bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white font-medium shadow-lg hover:shadow-xl transition-all duration-200"
-                      >
-                        Done
-                      </Button>
+                      <div className="flex gap-2">
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => {
+                            setSelectedCapacityItem(null)
+                            setStartDate("")
+                            setEndDate("")
+                            setCapacityPlanningMode(false)
+                          }}
+                          className="flex-1"
+                        >
+                          Cancel
+                        </Button>
+                        <Button
+                          size="sm"
+                          onClick={handleAddCapacityRange}
+                          disabled={!startDate || !endDate}
+                          className="flex-1 bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white font-medium shadow-lg hover:shadow-xl transition-all duration-200"
+                        >
+                          Done
+                        </Button>
+                      </div>
                     </div>
                   </div>
                 )}
@@ -654,75 +696,104 @@ function KanbanBoard({ createWorkItemTrigger, onCreateWorkItemHandled }: KanbanB
 
       {/* Header with View Toggle */}
       <div className="mb-8">
-        <div className="flex items-center justify-between mb-6">
-          {/* Minimalistic View Toggle */}
-          <div className="flex items-center bg-muted/50 rounded-lg p-1">
-            <button
-              onClick={() => setViewMode("current")}
-              className={`px-4 py-2 text-sm font-medium rounded-md transition-all ${
-                viewMode === "current"
-                  ? "bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-md"
-                  : "text-muted-foreground hover:text-foreground"
-              }`}
-            >
-              Current Work
-            </button>
-            <button
-              onClick={() => setViewMode("backlog")}
-              className={`px-4 py-2 text-sm font-medium rounded-md transition-all ${
-                viewMode === "backlog"
-                  ? "bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-md"
-                  : "text-muted-foreground hover:text-foreground"
-              }`}
-            >
-              Backlog
-            </button>
-            <button
-              onClick={() => setViewMode("capacity")}
-              className={`px-4 py-2 text-sm font-medium rounded-md transition-all ${
-                viewMode === "capacity"
-                  ? "bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-md"
-                  : "text-muted-foreground hover:text-foreground"
-              }`}
-            >
-              Capacity
-            </button>
-            <button
-              onClick={() => setViewMode("about-ux")}
-              className={`px-4 py-2 text-sm font-medium rounded-md transition-all ${
-                viewMode === "about-ux"
-                  ? "bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-md"
-                  : "text-muted-foreground hover:text-foreground"
-              }`}
-            >
-              About UX
-            </button>
-          </div>
+        {/* Dark Header Container */}
+        <div className="rounded-2xl px-6 py-2 mb-6 shadow-lg shadow-slate-900/50" style={{backgroundColor: 'rgb(23, 23, 54)'}}>
+          <div className="flex items-center justify-between">
+            {/* Navigation Tabs */}
+            <div className="flex items-center gap-1">
+              <button
+                onClick={() => setViewMode("current")}
+                className={`px-4 py-2 text-sm font-medium rounded-md transition-all ${
+                  viewMode === "current"
+                    ? "bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-md"
+                    : "text-white hover:text-gray-200"
+                }`}
+              >
+                Current Work
+              </button>
+              <button
+                onClick={() => setViewMode("backlog")}
+                className={`px-4 py-2 text-sm font-medium rounded-md transition-all ${
+                  viewMode === "backlog"
+                    ? "bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-md"
+                    : "text-white hover:text-gray-200"
+                }`}
+              >
+                Backlog
+              </button>
+              <button
+                onClick={() => setViewMode("capacity")}
+                className={`px-4 py-2 text-sm font-medium rounded-md transition-all ${
+                  viewMode === "capacity"
+                    ? "bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-md"
+                    : "text-white hover:text-gray-200"
+                }`}
+              >
+                Capacity
+              </button>
+              <button
+                onClick={() => setViewMode("about-ux")}
+                className={`px-4 py-2 text-sm font-medium rounded-md transition-all ${
+                  viewMode === "about-ux"
+                    ? "bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-md"
+                    : "text-white hover:text-gray-200"
+                }`}
+              >
+                About UX
+              </button>
+            </div>
 
-          {/* Auto-saved indicator */}
-          <div className="flex items-center gap-2 text-sm text-muted-foreground bg-muted/50 rounded-full px-3 py-1.5">
-            <Database size={14} />
-            <span>Auto-saved</span>
+            {/* Filter and Auto-saved */}
+            <div className="flex items-center gap-4">
+              {(viewMode === "backlog" || viewMode === "current") && (
+                <div className="relative w-80">
+                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <MagnifyingGlass className="h-4 w-4 text-muted-foreground" />
+                  </div>
+                  <Input
+                    type="text"
+                    placeholder="Filter by PM owner, title, or description..."
+                    value={filterText}
+                    onChange={(e) => setFilterText(e.target.value)}
+                    className="pl-10 pr-10 text-sm bg-white"
+                  />
+                  {filterText && (
+                    <button
+                      onClick={() => setFilterText("")}
+                      className="absolute inset-y-0 right-0 pr-3 flex items-center text-muted-foreground hover:text-foreground"
+                    >
+                      <X className="h-4 w-4" />
+                    </button>
+                  )}
+                </div>
+              )}
+              {/* Auto-saved indicator */}
+              <div className="flex items-center gap-2 text-sm text-gray-300 bg-black/20 rounded-full px-3 py-1.5">
+                <Database size={14} />
+                <span>Auto-saved</span>
+              </div>
+            </div>
           </div>
         </div>
       </div>
       
       {/* Content based on view mode */}
-      {viewMode === "capacity" ? renderCapacityView() : 
-       viewMode === "about-ux" ? renderAboutUXView() : (
-        <>
-          {viewMode === "backlog" ? (
-            /* Backlog View - Two Columns */
-            <div className="grid gap-6 grid-cols-1 md:grid-cols-2 max-w-4xl mx-auto">
+      <div className="pt-8">
+        {viewMode === "capacity" ? renderCapacityView() : 
+         viewMode === "about-ux" ? renderAboutUXView() : (
+          <>
+            {viewMode === "backlog" ? (
+              /* Backlog View - Three Columns */
+              <div className="grid gap-6 grid-cols-1 md:grid-cols-3 max-w-6xl mx-auto">
               {BACKLOG_COLUMNS.map((column) => (
                 <div key={column.id} className="space-y-4">
                   {/* Column Header */}
                   <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
+                    <div className="flex flex-col">
                       <h3 className="font-semibold text-lg text-foreground">{column.title}</h3>
-                      <Badge variant="secondary" className="text-xs">
-                        {workItems?.filter(item => item.status === column.id).length || 0}
-                      </Badge>
+                      {column.id === "upcoming" && (
+                        <p className="text-xs text-muted-foreground mt-1">(ordered by priority)</p>
+                      )}
                     </div>
                     <Button
                       variant="ghost"
@@ -736,7 +807,7 @@ function KanbanBoard({ createWorkItemTrigger, onCreateWorkItemHandled }: KanbanB
 
                   {/* Cards Container */}
                   <div className="space-y-3 min-h-[400px]">
-                    {workItems?.filter(item => item.status === column.id).map((item) => (
+                    {filterWorkItems(workItems?.filter(item => item.status === column.id) || []).map((item) => (
                       <Card 
                         key={item.id} 
                         className="group hover:shadow-md transition-all duration-200 border border-border/50 cursor-pointer"
@@ -748,17 +819,36 @@ function KanbanBoard({ createWorkItemTrigger, onCreateWorkItemHandled }: KanbanB
                         <h4 className="font-medium text-sm text-card-foreground leading-tight pr-2">
                           {item.title}
                         </h4>
-                        <DropdownMenu>
-                          <DropdownMenuTrigger asChild>
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              className="h-6 w-6 p-0"
-                              onClick={(e) => e.stopPropagation()}
-                            >
-                              <DotsThree size={14} />
-                            </Button>
-                          </DropdownMenuTrigger>
+                        <div className="flex items-center gap-1">
+                          {/* Priority Arrows */}
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="h-6 w-6 p-0 hover:bg-gray-100"
+                            onClick={(e) => { e.stopPropagation(); /* handleMoveCardUp(item.id, item.status) */ }}
+                          >
+                            <ArrowUp size={12} />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="h-6 w-6 p-0 hover:bg-gray-100"
+                            onClick={(e) => { e.stopPropagation(); /* handleMoveCardDown(item.id, item.status) */ }}
+                          >
+                            <ArrowDown size={12} />
+                          </Button>
+                          {/* More Options */}
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                className="h-6 w-6 p-0"
+                                onClick={(e) => e.stopPropagation()}
+                              >
+                                <DotsThree size={14} />
+                              </Button>
+                            </DropdownMenuTrigger>
                           <DropdownMenuContent align="end">
                             <DropdownMenuItem onClick={(e) => { e.stopPropagation(); handleEditWorkItem(item); }}>
                               <PencilSimple size={14} className="mr-2" />
@@ -776,7 +866,8 @@ function KanbanBoard({ createWorkItemTrigger, onCreateWorkItemHandled }: KanbanB
                               Delete
                             </DropdownMenuItem>
                           </DropdownMenuContent>
-                        </DropdownMenu>
+                          </DropdownMenu>
+                        </div>
                       </div>
 
                       {/* Task Description */}
@@ -819,11 +910,11 @@ function KanbanBoard({ createWorkItemTrigger, onCreateWorkItemHandled }: KanbanB
                 <div key={column.id} className="space-y-4">
                   {/* Column Header */}
                   <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
+                    <div className="flex flex-col">
                       <h3 className="font-semibold text-lg text-foreground">{column.title}</h3>
-                      <Badge variant="secondary" className="text-xs">
-                        {workItems?.filter(item => item.status === column.id).length || 0}
-                      </Badge>
+                      {column.id === "new" && (
+                        <p className="text-xs text-muted-foreground mt-1">(ordered by priority)</p>
+                      )}
                     </div>
                     <Button
                       variant="ghost"
@@ -837,7 +928,7 @@ function KanbanBoard({ createWorkItemTrigger, onCreateWorkItemHandled }: KanbanB
 
                   {/* Cards Container */}
                   <div className="space-y-3 min-h-[400px]">
-                    {workItems?.filter(item => item.status === column.id).map((item) => (
+                    {filterWorkItems(workItems?.filter(item => item.status === column.id) || []).map((item) => (
                       <Card 
                         key={item.id} 
                         className="group hover:shadow-md transition-all duration-200 border border-border/50 cursor-pointer"
@@ -849,17 +940,36 @@ function KanbanBoard({ createWorkItemTrigger, onCreateWorkItemHandled }: KanbanB
                             <h4 className="font-medium text-sm text-card-foreground leading-tight pr-2">
                               {item.title}
                             </h4>
-                            <DropdownMenu>
-                              <DropdownMenuTrigger asChild>
-                                <Button
-                                  variant="ghost"
-                                  size="sm"
-                                  className="h-6 w-6 p-0"
-                                  onClick={(e) => e.stopPropagation()}
-                                >
-                                  <DotsThree size={14} />
-                                </Button>
-                              </DropdownMenuTrigger>
+                            <div className="flex items-center gap-1">
+                              {/* Priority Arrows */}
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                className="h-6 w-6 p-0 hover:bg-gray-100"
+                                onClick={(e) => { e.stopPropagation(); /* handleMoveCardUp(item.id, item.status) */ }}
+                              >
+                                <ArrowUp size={12} />
+                              </Button>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                className="h-6 w-6 p-0 hover:bg-gray-100"
+                                onClick={(e) => { e.stopPropagation(); /* handleMoveCardDown(item.id, item.status) */ }}
+                              >
+                                <ArrowDown size={12} />
+                              </Button>
+                              {/* More Options */}
+                              <DropdownMenu>
+                                <DropdownMenuTrigger asChild>
+                                  <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    className="h-6 w-6 p-0"
+                                    onClick={(e) => e.stopPropagation()}
+                                  >
+                                    <DotsThree size={14} />
+                                  </Button>
+                                </DropdownMenuTrigger>
                               <DropdownMenuContent align="end">
                                 <DropdownMenuItem onClick={(e) => { e.stopPropagation(); handleEditWorkItem(item); }}>
                                   <PencilSimple size={14} className="mr-2" />
@@ -886,7 +996,8 @@ function KanbanBoard({ createWorkItemTrigger, onCreateWorkItemHandled }: KanbanB
                                   Delete
                                 </DropdownMenuItem>
                               </DropdownMenuContent>
-                            </DropdownMenu>
+                              </DropdownMenu>
+                            </div>
                           </div>
 
                           {/* Task Description */}
@@ -925,6 +1036,7 @@ function KanbanBoard({ createWorkItemTrigger, onCreateWorkItemHandled }: KanbanB
           )}
         </>
       )}
+      </div>
 
       <WorkItemSidePanel
         isOpen={sidePanelOpen}

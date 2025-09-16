@@ -22,7 +22,7 @@ function App() {
             sentiment ux team
           </h1>
           <p className="text-white/80 text-center text-lg mb-6 max-w-2xl">
-            Welcome to our team hub! Add work items, see our team's capacity and more! Excited to elevate our user's experiences.
+            Welcome to our team's hub. Add work items, check team capacity, and discover how we collaborate. We're thrilled to elevate the user experience together!
           </p>
           <Button 
             onClick={handleCreateWorkItem}
