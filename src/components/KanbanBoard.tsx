@@ -42,8 +42,8 @@ const CURRENT_WORK_COLUMNS = [
 ]
 
 const BACKLOG_COLUMNS = [
-  { id: "upcoming", title: "Upcoming" },
-  { id: "potential", title: "Potential" }
+  { id: "upcoming", title: "Q2 Backlog" },
+  { id: "potential", title: "Other" }
 ]
 
 // Initial work items
