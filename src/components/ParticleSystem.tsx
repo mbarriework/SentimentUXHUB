@@ -1,3 +1,5 @@
+"use client"
+
 import { useEffect, useRef } from "react"
 
 export default function ParticleSystem() {
@@ -10,10 +12,15 @@ export default function ParticleSystem() {
     const ctx = canvas.getContext("2d")
     if (!ctx) return
 
+    ctx.fillStyle = "rgb(23, 23, 54)"
+    ctx.fillRect(0, 0, canvas.width, canvas.height)
+
     // Arrays to hold various particle types
     const particles: Particle[] = []
     const fireworkParticles: Particle[] = []
     const dustParticles: DustParticle[] = []
+    const ripples: Ripple[] = []
+    const techRipples: Ripple[] = []
     const ripples: Ripple[] = []
     const techRipples: Ripple[] = []
 
