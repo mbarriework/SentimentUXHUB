@@ -1,4 +1,4 @@
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { useKV } from "@github/spark/hooks"
 import { Plus, PencilSimple, Trash, User, ArrowRight, Database } from "@phosphor-icons/react"
 import { Button } from "@/components/ui/button"
@@ -7,6 +7,11 @@ import { Badge } from "@/components/ui/badge"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { toast } from "sonner"
 import WorkItemSidePanel from "./WorkItemSidePanel"
+
+interface KanbanBoardProps {
+  createWorkItemTrigger: boolean
+  onCreateWorkItemHandled: () => void
+}
 
 type ViewMode = "current" | "backlog" | "capacity"
 
@@ -159,7 +164,7 @@ const initialBacklogColumns: Column[] = [
   }
 ]
 
-function KanbanBoard() {
+function KanbanBoard({ createWorkItemTrigger, onCreateWorkItemHandled }: KanbanBoardProps) {
   const [viewMode, setViewMode] = useState<ViewMode>("current")
   const [currentColumns, setCurrentColumns] = useKV<Column[]>("current-columns", initialCurrentColumns)
   const [backlogColumns, setBacklogColumns] = useKV<Column[]>("backlog-columns", initialBacklogColumns)
@@ -169,6 +174,14 @@ function KanbanBoard() {
 
   const columns = viewMode === "current" ? (currentColumns || []) : (backlogColumns || [])
   const setColumns = viewMode === "current" ? setCurrentColumns : setBacklogColumns
+
+  // Handle create work item trigger from parent
+  useEffect(() => {
+    if (createWorkItemTrigger) {
+      handleCreateWorkItem()
+      onCreateWorkItemHandled()
+    }
+  }, [createWorkItemTrigger, onCreateWorkItemHandled])
 
   const handleCreateWorkItem = (columnId?: string) => {
     setEditingItem(null)
@@ -311,17 +324,6 @@ function KanbanBoard() {
             <Database size={14} />
             <span>Auto-saved</span>
           </div>
-        </div>
-
-        {/* Subtitle and Create Button */}
-        <div className="text-center mb-6">
-          <Button 
-            onClick={() => handleCreateWorkItem()}
-            className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-medium px-6 py-2 rounded-lg shadow-lg hover:shadow-xl transition-all duration-200"
-          >
-            <Plus size={16} className="mr-2" />
-            Create new work item
-          </Button>
         </div>
       </div>
       
