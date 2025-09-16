@@ -135,6 +135,16 @@ function KanbanBoard({ createWorkItemTrigger, onCreateWorkItemHandled }: KanbanB
   const [viewMode, setViewMode] = useState<ViewMode>("current")
   const [currentColumns, setCurrentColumns] = useKV<Column[]>("current-columns", initialCurrentColumns)
   const [backlogColumns, setBacklogColumns] = useKV<Column[]>("backlog-columns", initialBacklogColumns)
+  
+  // Force reset current columns to remove any cached "Done" column
+  useEffect(() => {
+    const currentCols = currentColumns || []
+    const hasDoneColumn = currentCols.some(col => col.id === "done")
+    if (hasDoneColumn) {
+      const filteredColumns = currentCols.filter(col => col.id !== "done")
+      setCurrentColumns(filteredColumns)
+    }
+  }, [currentColumns, setCurrentColumns])
   const [sidePanelOpen, setSidePanelOpen] = useState(false)
   const [editingItem, setEditingItem] = useState<WorkItem | null>(null)
   const [targetColumnId, setTargetColumnId] = useState<string>("")
