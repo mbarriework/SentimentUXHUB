@@ -90,7 +90,7 @@ export default function ParticleSystem() {
         this.vx = Math.cos(Math.random() * Math.PI * 2) * baseSpeed
         this.vy = Math.sin(Math.random() * Math.PI * 2) * baseSpeed
         this.size = isFirework ? Math.random() * 2 + 2 : Math.random() * 3 + 1
-        this.hue = 200 + Math.random() * 60 // Blue-cyan range
+        this.hue = 200 + Math.random() * 60
         this.alpha = 1
         this.sizeDirection = Math.random() < 0.5 ? -1 : 1
         this.trail = []
@@ -138,7 +138,7 @@ export default function ParticleSystem() {
         if (this.size > 4 || this.size < 1) this.sizeDirection *= -1
 
         // Cycle through hue to create a shifting color effect
-        this.hue = ((this.hue + 0.3) % 60) + 200
+        this.hue = (this.hue + 0.3) % 360
 
         // Leave a trail of previous positions
         if (frameCount % 2 === 0 && (Math.abs(this.vx) > 0.1 || Math.abs(this.vy) > 0.1)) {
@@ -200,7 +200,7 @@ export default function ParticleSystem() {
         this.x = canvas ? Math.random() * canvas.width : 0
         this.y = canvas ? Math.random() * canvas.height : 0
         this.size = Math.random() * 1.5 + 0.5
-        this.hue = 200 + Math.random() * 60
+        this.hue = Math.random() * 360
         this.vx = (Math.random() - 0.5) * 0.05
         this.vy = (Math.random() - 0.5) * 0.05
       }
@@ -212,7 +212,7 @@ export default function ParticleSystem() {
           this.y = (this.y + this.vy + canvas.height) % canvas.height
         }
         // Slowly shift hue
-        this.hue = ((this.hue + 0.1) % 60) + 200
+        this.hue = (this.hue + 0.1) % 360
       }
 
       draw(ctx: CanvasRenderingContext2D) {
@@ -232,7 +232,7 @@ export default function ParticleSystem() {
       alpha: number
       hue: number
 
-      constructor(x: number, y: number, hue = 200, maxRadius = 30) {
+      constructor(x: number, y: number, hue = 0, maxRadius = 30) {
         this.x = x
         this.y = y
         this.radius = 0
@@ -244,7 +244,7 @@ export default function ParticleSystem() {
       update() {
         this.radius += 1.5
         this.alpha -= 0.01
-        this.hue = ((this.hue + 5) % 60) + 200
+        this.hue = (this.hue + 5) % 360
       }
 
       draw(ctx: CanvasRenderingContext2D) {
@@ -290,10 +290,7 @@ export default function ParticleSystem() {
     // Draw shifting background gradient
     function drawBackground() {
       if (ctx && canvas) {
-        const gradient = ctx.createLinearGradient(0, 0, 0, canvas.height)
-        gradient.addColorStop(0, 'oklch(0.25 0.1 250)')
-        gradient.addColorStop(1, 'oklch(0.15 0.15 270)')
-        ctx.fillStyle = gradient
+        ctx.fillStyle = "rgb(23, 23, 54)"
         ctx.fillRect(0, 0, canvas.width, canvas.height)
       }
     }
@@ -380,7 +377,7 @@ export default function ParticleSystem() {
       const clickX = e.clientX - rect.left
       const clickY = e.clientY - rect.top
 
-      ripples.push(new Ripple(clickX, clickY, 200, 60))
+      ripples.push(new Ripple(clickX, clickY, 0, 60))
 
       // Add firework particles
       for (let i = 0; i < 15; i++) {
