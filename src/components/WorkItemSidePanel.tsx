@@ -104,7 +104,6 @@ export default function WorkItemSidePanel({
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
     if (!formData.title.trim()) return
-    if (!formData.description.trim()) return
     if (!formData.pmOwner.trim()) return
 
     // Convert empty strings to undefined for optional fields
@@ -144,13 +143,12 @@ export default function WorkItemSidePanel({
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="description">Description *</Label>
+            <Label htmlFor="description">Description</Label>
             <Textarea
               id="description"
               value={formData.description}
               onChange={(e) => setFormData({ ...formData, description: e.target.value })}
               placeholder="Enter description"
-              required
               rows={3}
             />
           </div>
@@ -168,13 +166,33 @@ export default function WorkItemSidePanel({
 
           <div className="space-y-2">
             <Label htmlFor="pmOwner">PM Owner *</Label>
-            <Input
-              id="pmOwner"
+            <Select
               value={formData.pmOwner}
-              onChange={(e) => setFormData({ ...formData, pmOwner: e.target.value })}
-              placeholder="Enter PM owner name"
-              required
-            />
+              onValueChange={(value: string) => {
+                if (value === "custom") {
+                  setFormData({ ...formData, pmOwner: "" })
+                } else {
+                  setFormData({ ...formData, pmOwner: value })
+                }
+              }}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Select or enter PM owner" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="Pranav">Pranav</SelectItem>
+                <SelectItem value="Ying">Ying</SelectItem>
+                <SelectItem value="custom">Other (type custom name)</SelectItem>
+              </SelectContent>
+            </Select>
+            {(!formData.pmOwner || !["Pranav", "Ying"].includes(formData.pmOwner)) && (
+              <Input
+                placeholder="Enter custom PM owner name"
+                value={formData.pmOwner}
+                onChange={(e) => setFormData({ ...formData, pmOwner: e.target.value })}
+                required
+              />
+            )}
           </div>
 
           <div className="space-y-2">
