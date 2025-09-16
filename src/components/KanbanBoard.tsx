@@ -32,8 +32,8 @@ interface Column {
 
 const initialCurrentColumns: Column[] = [
   {
-    id: "concept",
-    title: "Concept",
+    id: "new",
+    title: "New",
     items: [
       {
         id: "sample-1",
@@ -54,7 +54,7 @@ const initialCurrentColumns: Column[] = [
     ]
   },
   {
-    id: "progress",
+    id: "in-progress",
     title: "In Progress",
     items: [
       {
@@ -64,13 +64,7 @@ const initialCurrentColumns: Column[] = [
         assignee: "UI Team",
         priority: "medium",
         type: "research"
-      }
-    ]
-  },
-  {
-    id: "review",
-    title: "Review",
-    items: [
+      },
       {
         id: "sample-4",
         title: "Design System Updates",
@@ -99,8 +93,8 @@ const initialCurrentColumns: Column[] = [
 
 const initialBacklogColumns: Column[] = [
   {
-    id: "upcoming",
-    title: "Upcoming",
+    id: "backlog",
+    title: "Backlog",
     items: [
       {
         id: "backlog-1",
@@ -117,13 +111,7 @@ const initialBacklogColumns: Column[] = [
         assignee: "Design Team",
         priority: "medium",
         type: "prototype"
-      }
-    ]
-  },
-  {
-    id: "ideas",
-    title: "Ideas",
-    items: [
+      },
       {
         id: "backlog-3",
         title: "AR Integration Concept",
@@ -131,13 +119,7 @@ const initialBacklogColumns: Column[] = [
         assignee: "Innovation Team",
         priority: "low",
         type: "research"
-      }
-    ]
-  },
-  {
-    id: "research",
-    title: "Research",
-    items: [
+      },
       {
         id: "backlog-4",
         title: "Accessibility Audit",
@@ -145,13 +127,7 @@ const initialBacklogColumns: Column[] = [
         assignee: "QA Team",
         priority: "high",
         type: "testing"
-      }
-    ]
-  },
-  {
-    id: "future",
-    title: "Future",
-    items: [
+      },
       {
         id: "backlog-5",
         title: "Voice Interface Design",
@@ -185,7 +161,7 @@ function KanbanBoard({ createWorkItemTrigger, onCreateWorkItemHandled }: KanbanB
 
   const handleCreateWorkItem = (columnId?: string) => {
     setEditingItem(null)
-    setTargetColumnId(columnId || (columns && columns[0]?.id) || "concept")
+    setTargetColumnId(columnId || (columns && columns[0]?.id) || "new")
     setSidePanelOpen(true)
   }
 
@@ -256,29 +232,139 @@ function KanbanBoard({ createWorkItemTrigger, onCreateWorkItemHandled }: KanbanB
     }
   }
 
-  const renderCapacityView = () => (
-    <div className="text-center py-12">
-      <h3 className="text-xl font-semibold text-foreground mb-4">Team Capacity</h3>
-      <p className="text-muted-foreground mb-8">Capacity planning and workload management coming soon.</p>
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-4xl mx-auto">
+  const renderCapacityView = () => {
+    const currentDate = new Date()
+    const currentMonth = currentDate.getMonth()
+    const currentYear = currentDate.getFullYear()
+    
+    // Get first day of month and days in month
+    const firstDay = new Date(currentYear, currentMonth, 1)
+    const lastDay = new Date(currentYear, currentMonth + 1, 0)
+    const daysInMonth = lastDay.getDate()
+    const startingDayOfWeek = firstDay.getDay()
+    
+    // Month names
+    const monthNames = [
+      "January", "February", "March", "April", "May", "June",
+      "July", "August", "September", "October", "November", "December"
+    ]
+    
+    // Generate calendar days
+    const calendarDays: (number | null)[] = []
+    
+    // Add empty cells for days before the first day of the month
+    for (let i = 0; i < startingDayOfWeek; i++) {
+      calendarDays.push(null)
+    }
+    
+    // Add days of the month
+    for (let day = 1; day <= daysInMonth; day++) {
+      calendarDays.push(day)
+    }
+    
+    // Sample team assignments for demonstration
+    const teamAssignments: Record<number, string[]> = {
+      15: ["UI Team", "Design Team"],
+      16: ["Research Team"],
+      17: ["UI Team"],
+      22: ["Design Team", "QA Team"],
+      23: ["UI Team", "Research Team"],
+      25: ["Design Team"],
+      28: ["UI Team", "QA Team"]
+    }
+    
+    return (
+      <div className="max-w-4xl mx-auto">
+        <div className="text-center mb-8">
+          <h3 className="text-2xl font-semibold text-foreground mb-2">
+            {monthNames[currentMonth]} {currentYear}
+          </h3>
+          <p className="text-muted-foreground">Team capacity and scheduling</p>
+        </div>
+        
         <Card className="p-6">
-          <h4 className="font-medium text-lg mb-2">UI Team</h4>
-          <p className="text-2xl font-bold text-accent mb-1">75%</p>
-          <p className="text-sm text-muted-foreground">Current capacity</p>
+          {/* Calendar Header */}
+          <div className="grid grid-cols-7 gap-2 mb-4">
+            {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map((day) => (
+              <div key={day} className="text-center font-medium text-sm text-muted-foreground py-2">
+                {day}
+              </div>
+            ))}
+          </div>
+          
+          {/* Calendar Grid */}
+          <div className="grid grid-cols-7 gap-2">
+            {calendarDays.map((day, index) => (
+              <div
+                key={index}
+                className={`
+                  min-h-[80px] p-2 border border-border/30 rounded-md relative
+                  ${day === null ? 'bg-muted/30' : 'bg-card hover:bg-muted/50 transition-colors'}
+                  ${day === currentDate.getDate() && currentMonth === new Date().getMonth() && currentYear === new Date().getFullYear() 
+                    ? 'ring-2 ring-accent' : ''}
+                `}
+              >
+                {day && (
+                  <>
+                    <div className="text-sm font-medium text-foreground mb-1">{day}</div>
+                    {teamAssignments[day] && (
+                      <div className="space-y-1">
+                        {teamAssignments[day].map((team, idx) => (
+                          <div
+                            key={idx}
+                            className={`text-xs px-2 py-1 rounded-md truncate ${
+                              team === "UI Team" ? "bg-blue-100 text-blue-800" :
+                              team === "Design Team" ? "bg-purple-100 text-purple-800" :
+                              team === "Research Team" ? "bg-green-100 text-green-800" :
+                              "bg-orange-100 text-orange-800"
+                            }`}
+                          >
+                            {team}
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </>
+                )}
+              </div>
+            ))}
+          </div>
         </Card>
-        <Card className="p-6">
-          <h4 className="font-medium text-lg mb-2">Design Team</h4>
-          <p className="text-2xl font-bold text-accent mb-1">60%</p>
-          <p className="text-sm text-muted-foreground">Current capacity</p>
-        </Card>
-        <Card className="p-6">
-          <h4 className="font-medium text-lg mb-2">Research Team</h4>
-          <p className="text-2xl font-bold text-accent mb-1">85%</p>
-          <p className="text-sm text-muted-foreground">Current capacity</p>
-        </Card>
+        
+        {/* Team Legend */}
+        <div className="mt-6 grid grid-cols-2 md:grid-cols-4 gap-4">
+          <div className="flex items-center gap-3 p-3 rounded-lg bg-blue-50 border border-blue-200">
+            <div className="w-3 h-3 rounded bg-blue-500"></div>
+            <div>
+              <div className="font-medium text-sm">UI Team</div>
+              <div className="text-xs text-muted-foreground">Frontend & Interface</div>
+            </div>
+          </div>
+          <div className="flex items-center gap-3 p-3 rounded-lg bg-purple-50 border border-purple-200">
+            <div className="w-3 h-3 rounded bg-purple-500"></div>
+            <div>
+              <div className="font-medium text-sm">Design Team</div>
+              <div className="text-xs text-muted-foreground">Visual & UX Design</div>
+            </div>
+          </div>
+          <div className="flex items-center gap-3 p-3 rounded-lg bg-green-50 border border-green-200">
+            <div className="w-3 h-3 rounded bg-green-500"></div>
+            <div>
+              <div className="font-medium text-sm">Research Team</div>
+              <div className="text-xs text-muted-foreground">User Research</div>
+            </div>
+          </div>
+          <div className="flex items-center gap-3 p-3 rounded-lg bg-orange-50 border border-orange-200">
+            <div className="w-3 h-3 rounded bg-orange-500"></div>
+            <div>
+              <div className="font-medium text-sm">QA Team</div>
+              <div className="text-xs text-muted-foreground">Quality Assurance</div>
+            </div>
+          </div>
+        </div>
       </div>
-    </div>
-  )
+    )
+  }
 
   return (
     <div className="p-6 md:p-8 min-h-screen bg-background">
@@ -329,16 +415,17 @@ function KanbanBoard({ createWorkItemTrigger, onCreateWorkItemHandled }: KanbanB
       
       {/* Content based on view mode */}
       {viewMode === "capacity" ? renderCapacityView() : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div className={`grid gap-6 ${
+          viewMode === "backlog" 
+            ? "grid-cols-1 max-w-2xl mx-auto" 
+            : "grid-cols-1 md:grid-cols-2 lg:grid-cols-3"
+        }`}>
           {(columns || []).map((column) => (
             <div key={column.id} className="space-y-4">
               {/* Column Header */}
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
                   <h3 className="font-semibold text-lg text-foreground">{column.title}</h3>
-                  <Badge variant="secondary" className="text-xs bg-muted text-muted-foreground">
-                    {column.items.length} tasks
-                  </Badge>
                 </div>
                 <Button
                   variant="ghost"
